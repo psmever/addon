@@ -1,0 +1,15 @@
+## Interface: 30400
+## Title: FindParty
+## Title-koKR: FindParty - 파티 찾기 도우미
+## Notes: Filtering party channel.
+## Notes-koKR: 파티찾기 채널을 필터링해서 보여줍니다.
+## Author: 엘나르핌 (Classic fanfix) / thenotfound (The original author)
+## Version: 3.2
+## SavedVariables: FP_Version, FP_Options, FP_Filter_Dungeon, FP_Minimap_Save, FP_Position_Save
+## SavedVariablesPerCharacter: FP_UserDefinedWhMsg, FP_UserDefinedAdMsg, FP_UserDefineIgnoreMsg
+
+Lib\LibStub.lua
+Lib\CallbackHandler-1.0.lua
+Lib\LibDataBroker-1.1.lua
+
+FindParty.xml
