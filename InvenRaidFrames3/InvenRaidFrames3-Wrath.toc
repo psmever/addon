@@ -3,7 +3,7 @@
 ## Notes: 인벤 레이드 프레임 3
 ## X-Category: UnitFrame
 ## Author: 법사마리
-## Version: classic.12.4.5u5
+## Version: classic.12.4.5u11c
 ## X-Website: 
 ## SavedVariables: InvenRaidFrames3DB
 ## SavedVariablesPerCharacter: InvenRaidFrames3CharDB

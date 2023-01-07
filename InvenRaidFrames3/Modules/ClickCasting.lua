@@ -270,6 +270,7 @@ function IRF3:SetClickCastingMouseWheel()
 end
 
 function IRF3:SelectClickCastingDB()
+
 if InCombatLockdown() or not InvenRaidFrames3CharDB then return end
 	InvenRaidFrames3CharDB.clickCasting = InvenRaidFrames3CharDB.clickCasting or { {}, {}, {}, {} }
 	for i = 1, 4 do
@@ -301,8 +302,8 @@ end
 local handler = CreateFrame("Frame")
 handler:SetScript("OnEvent", IRF3.SelectClickCastingDB)
 handler:RegisterEvent("ACTIVE_TALENT_GROUP_CHANGED")
-handler:RegisterEvent("PLAYER_TALENT_UPDATE")
+--handler:RegisterEvent("PLAYER_TALENT_UPDATE")
 handler:RegisterEvent("PLAYER_LOGIN")
 handler:RegisterEvent("PLAYER_ENTERING_WORLD")
 --handler:RegisterEvent("PLAYER_REGEN_ENABLED")
-handler:RegisterEvent("LEARNED_SPELL_IN_TAB")
+--handler:RegisterEvent("LEARNED_SPELL_IN_TAB")

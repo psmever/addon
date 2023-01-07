@@ -224,6 +224,18 @@ function Option:CreateRangeMenu(menu, parent)
 		end
 	)
 	menu.mana:SetPoint("TOP", menu.outRangeName, "BOTTOM", 0, 0)
+
+	menu.outRangeName2 = LBO:CreateWidget("CheckBox", parent, L["lime_func_18"], L["lime_func_19"], nil, nil, true,
+		function()
+			return IRF3.db.units.outRangeName2
+		end,
+		function(v)
+			IRF3.db.units.outRangeName2 = v
+			Option:UpdateMember(update)
+		end
+	)
+	menu.outRangeName2:SetPoint("TOP", menu.mana, "BOTTOM", 0, 0)
+
 end
 
 function Option:CreateLostHealthMenu(menu, parent)
@@ -964,21 +976,7 @@ function Option:CreateDebuffIconMenu(menu, parent)
 		end
 	end
 
-	menu.use = LBO:CreateWidget("CheckBox", parent, L["lime_basic_03"], L["lime_basic_desc_03"], nil, nil, true,
-		function()
-
-			return IRF3.db.units.displayDebuffTooltip
-		end,
-		function(v)
-
-			IRF3.db.units.displayDebuffTooltip = v
-			LBO:Refresh(parent)
-			Option:UpdateMember(update)
-			
-		end
-	)
-	menu.use:SetPoint("TOP",menu.color5,"BOTTOM",0,14)
-
+ 
 
 end
 
@@ -1128,6 +1126,8 @@ function Option:CreateBossAuraMenu(menu, parent)
 		end,
 		function(v)
 			menu.delete:Update()
+			menu.enableglow:Update()
+			menu.glowColor:Update()
 			menu.useeachbossAura:Update()
 			menu.bossAuraAlertTimer:Update()
 			menu.bossAuraSize:Update()
@@ -1197,6 +1197,71 @@ function Option:CreateBossAuraMenu(menu, parent)
 	menu.add:SetPoint("RIGHT", menu.list, "RIGHT", 0, 0)
 
 
+---Glow 효과
+	menu.enableglow = LBO:CreateWidget("CheckBox", parent, L["lime_func_aura_10_13"], L["lime_func_aura_10_14"], nil, function() local name = debuffs[menu.list:GetValue()] if name then for spellId in string.gmatch(name, "%d+") do name = tonumber(spellId) end end  return not name end, true,
+		function()
+			local name = debuffs[menu.list:GetValue()]
+	if name then
+			--주문ID로 등록된 경우 숫자만 발췌
+			for spellId in string.gmatch(name, "%d+") do
+				name = tonumber(spellId)
+			end
+			return IRF3.db.userAuraGlow[name]
+	end
+		end,
+		function(v)
+
+			local name = debuffs[menu.list:GetValue()]
+
+	if name then
+			--주문ID로 등록된 경우 숫자만 발췌
+			for spellId in string.gmatch(name, "%d+") do
+				name = tonumber(spellId)
+			end
+
+			IRF3.db.userAuraGlow[name] = v
+	end
+		 	LBO:Refresh(parent)
+		end
+	)
+	menu.enableglow:SetPoint("TOPLEFT", menu.list, "TOPRIGHT", 10, 0)
+
+--Glow효과 색상
+	menu.glowColor = LBO:CreateWidget("ColorPicker", parent, L["lime_func_aura_10_15"], L["lime_func_aura_10_16"], nil, function() local name = debuffs[menu.list:GetValue()] if name then for spellId in string.gmatch(name, "%d+") do name = tonumber(spellId) end end  return not IRF3.db.userAuraGlow[name] end, true,
+		function() 
+		local name = debuffs[menu.list:GetValue()]
+if name then
+			--주문ID로 등록된 경우 숫자만 발췌
+			for spellId in string.gmatch(name, "%d+") do
+				name = tonumber(spellId)
+			end
+
+		if  IRF3.db.userAuraGlowColorR[name] and IRF3.db.userAuraGlowColorG[name] and IRF3.db.userAuraGlowColorB[name] then
+			return IRF3.db.userAuraGlowColorR[name], IRF3.db.userAuraGlowColorG[name], IRF3.db.userAuraGlowColorB[name] 
+		else --값이 없을때, alpha혼선을 위해 기본값 리턴
+			return 1,0.25,0 
+		end
+end
+		end,
+		function(r, g, b)
+
+		local name = debuffs[menu.list:GetValue()]  
+			--주문ID로 등록된 경우 숫자만 발췌
+if name then
+			for spellId in string.gmatch(name, "%d+") do
+				name = tonumber(spellId)
+			end
+
+
+		IRF3.db.userAuraGlowColorR[name], IRF3.db.userAuraGlowColorG[name], IRF3.db.userAuraGlowColorB[name] = r, g, b
+
+		end
+end
+	)
+
+	menu.glowColor:SetPoint("TOPLEFT", menu.enableglow, "BOTTOMLEFT", 0, 18)
+
+
 
 --개별 아이콘 사용 여부 지정
 menu.useeachbossAura = LBO:CreateWidget("CheckBox", parent, L["lime_func_aura_10_1"], L["lime_func_aura_10_2"], nil, function() local name = debuffs[menu.list:GetValue()] if name then for spellId in string.gmatch(name, "%d+") do name = tonumber(spellId) end end  return not name end, true,
@@ -1225,7 +1290,7 @@ menu.useeachbossAura = LBO:CreateWidget("CheckBox", parent, L["lime_func_aura_10
 		 	LBO:Refresh(parent)
 		end
 	)
-	menu.useeachbossAura:SetPoint("TOPLEFT", menu.list, "TOPRIGHT", 10, 0)
+	menu.useeachbossAura:SetPoint("TOPLEFT", menu.glowColor, "BOTTOMLEFT", 0, 18)
 
 --폰트 강조시간 지정
 	menu.bossAuraAlertTimer = LBO:CreateWidget("Slider", parent, L["lime_func_aura_10_3"], L["lime_func_aura_10_4"], nil, function() local name = debuffs[menu.list:GetValue()] if name then for spellId in string.gmatch(name, "%d+") do name = tonumber(spellId) end end  return not IRF3.db.useeachbossAura[name] end, true,
@@ -1359,6 +1424,7 @@ menu.useeachbossAura = LBO:CreateWidget("CheckBox", parent, L["lime_func_aura_10
 				name = tonumber(spellId)
 			end
 			IRF3.db.userAura[name] = false 
+			IRF3.db.userAuraGlow[name] = false
 
 			menu.reset:Update()
 			menu.list:Setup()

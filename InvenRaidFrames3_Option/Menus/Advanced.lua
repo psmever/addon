@@ -113,6 +113,20 @@ function Option:CreateAdvancedMenu(menu, parent)
 	)
 	menu.enableHealComm:SetPoint("TOPLEFT", menu.enableInstantHealth, "BOTTOMLEFT", 0, 0)
 
+	--외부 라이브러리 : SmoothEffect
+	menu.smootheffect  = LBO:CreateWidget("CheckBox", parent, L["Smoothbar"], L["Smoothbardesc"], nil, nil, true,
+ 		function() return IRF3.db.smootheffect end,
+ 
+ 		function(v)
+ 			IRF3.db.smootheffect = v
+			Option:SetOption("smootheffect", v)
+			IRF3:SetupLib()
+ 
+ 		end
+ 	) 
+ 	menu.smootheffect:SetPoint("TOPLEFT", menu.enableHealComm, "BOTTOMLEFT", 0, 0)
+
+
  
 
 

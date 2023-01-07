@@ -151,6 +151,18 @@
 				</FontString>
 			</Layer>
 		</Layers>
+				<Frames>
+					<Cooldown parentKey="cooldown" inherits="CooldownFrameTemplate" reverse="true" hidden="true">
+						<Anchors>
+							<Anchor point="CENTER" x="0" y="-1"/>
+						</Anchors>
+					</Cooldown>
+
+				</Frames>
+				<Scripts>
+					<OnLoad function="InvenRaidFrames3Member_debuffIconOnLoad"/>
+				</Scripts>
+				
 		<Scripts>
 			<OnUpdate function="InvenRaidFrames3Member_AuraIconOnUpdate"/>
 		</Scripts>
@@ -203,7 +215,7 @@
 			</Layer>
 
 			<Layer level="OVERLAY" textureSubLevel="3">
-				<FontString name="$parentName" parentKey="name" inherits="GameFontHighlightSmall" maxLines="2"/>
+				<FontString name="$parentName" parentKey="name" inherits="GameFontHighlightSmall" maxLines="2" ignoreParentAlpha="true"/>
 				<FontString name="$parentLostText" parentKey="losttext" inherits="GameFontHighlightSmall" maxLines="1"/>
 
 				<Texture name="$parentRoleIcon" hidden="true" parentKey="roleIcon"/>

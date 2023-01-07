@@ -44,6 +44,7 @@ end
 local healthText
 
 local function getHealthText(self)
+
 	if IRF3.db.units.healthType == 1 then
 		if IRF3.db.units.shortLostHealth then
 			return ("-%.1f"):format(self.lostHealth / 1000)
@@ -137,21 +138,25 @@ local function getStatusText(self, bracket)
 		text = L["Lime_dead"]
 	elseif self.survivalSkill then
   		text = ("<%s%s>"):format(self.survivalSkill, self.survivalSkillTimeLeft or "")
-
-	elseif (self.lostHealth > 0 or self.overAbsorb > 0) and IRF3.db.units.healthType ~= 0 and checkRange(self) then
-		if self.optionTable.healthRed then
-			if self.lostHealth > 0 then
-				text = "|cffff0000"..getHealthText(self).."|r"
-			else
-				text = "|cff00d8ff"..getHealthText2(self).."|r"
-			end
-		else
-			text = self.lostHealth > 0 and getHealthText(self) or getHealthText2(self)
-		end
 	elseif self.isAFK then
 		prefix, postfix = "|cff9d9d9d<", ">|r"
 		text = L["Lime_afk"]
+	elseif (self.lostHealth > 0 or self.overAbsorb > 0) and IRF3.db.units.healthType ~= 0 and checkRange(self) then
+		if self.optionTable.healthRed then
+			if self.lostHealth > 0 then
+
+				text = "|cffff0000"..getHealthText(self).."|r"
+			else
+
+				text = "|cff00d8ff"..getHealthText2(self).."|r"
+			end
+		else
+
+			text = self.lostHealth > 0 and getHealthText(self) or getHealthText2(self)
+		end
+
 	else
+
 		return "", 0
 	end
 	if bracket and text ~= "" then
@@ -414,9 +419,15 @@ function InvenRaidFrames3Member_UpdateNameColor(self)
 	self.name:SetTextColor(IRF3.db.colors.name[1], IRF3.db.colors.name[2], IRF3.db.colors.name[3])
 	end
 
-	if self.outRange and (self.isGhost or self.isDead) then
-	self.name:SetAlpha(IRF3.db.units.outRangeAlpha)
+	--거리가멀때 (죽거나/유령이거나/이름 투명도적용이면) 이름도 투명하게 표기
+	if self.outRange and (self.isGhost or self.isDead or IRF3.db.units.outRangeName2) then --이름표에도 투명도 적용옵션체크.outRangeName2가 true면 이름에도 투명도 적용
+		self.name:SetAlpha(IRF3.db.units.outRangeAlpha)
+
 	else 
-	self.name:SetAlpha(1)
+		self.name:SetAlpha(1)
 	end
+
+			 
+
+
 end

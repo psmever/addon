@@ -6,13 +6,17 @@ local UnitDebuff = _G.UnitDebuff
 local PlaySoundFile = _G.PlaySoundFile
 local SM = LibStub("LibSharedMedia-3.0")
 local LRD = LibStub("LibRealDispel-1.0")
-
-
+local glowinit ={}
+local LCG = LibStub("LibCustomGlow-1.0") --Glow 효과용
 local ignoreAuraId = {}
 local ignoreAuraName = {}
 local bossAuraId = {}
 local bossAuraName = {}
 
+local bossAurdGlow = {}
+local bossAuraGlowColorR = {}
+local bossAuraGlowColorG = {}
+local bossAuraGlowColorB = {}
  
 
 IRF3.ignoreAura = {
@@ -75,9 +79,9 @@ local function bossAuraOnUpdate(self, opt)
 --		if (self.endTime - GetTime()) > 2.5 then
 
 		if (self.endTime - GetTime()) > self.alertTimer  then
-		self.timerParent.text:SetFormattedText("%d", self.endTime - GetTime() + 0.5)
+		self.timerParent.text:SetFormattedText("%d", self.endTime - GetTime() + 0.1)
 		else
-			self.timerParent.text:SetFormattedText("|cffff0000%.1f|r", self.endTime - GetTime() + 0.5)
+			self.timerParent.text:SetFormattedText("|cffff0000%.1f|r", self.endTime - GetTime() + 0.1)
 
 		end
 	elseif opt == 2 then
@@ -86,6 +90,18 @@ local function bossAuraOnUpdate(self, opt)
 		self.timerParent.text:SetText("")
 	end
 end
+
+--[[
+local function debuffIconOnUpdate(self, opt)
+	if opt == 1 then
+		self.timerParent.text:SetFormattedText("%d", self.endTime - GetTime()+0.1 )
+	elseif opt == 2 then
+		self.timerParent.text:SetFormattedText("%d", GetTime() - self.startTime)
+	else
+		self.timerParent.text:SetText("")
+	end
+end
+--]]
 
 function IRF3:BuildAuraList()
 	table.wipe(ignoreAuraId)
@@ -132,11 +148,15 @@ function InvenRaidFrames3Member_SetAuraFont(self)
 	self.bossAura.timerParent.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", IRF3.db.font.file), IRF3.db.font.size, "THINOUTLINE")
 	self.bossAura.timerParent.text:SetShadowColor(0, 0, 0)
 	self.bossAura.timerParent.text:SetShadowOffset(1, -1)
+
 	for i = 1, 5 do
 		local debuffIcon = self["debuffIcon"..i]
 		debuffIcon.count:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", IRF3.db.font.file), IRF3.db.font.size, "THINOUTLINE")
 		debuffIcon.count:SetShadowColor(0, 0, 0)
 		debuffIcon.count:SetShadowOffset(1, -1)
+--		debuffIcon.timerParent.text:SetFont(LibStub("LibSharedMedia-3.0"):Fetch("font", IRF3.db.font.file), IRF3.db.font.size, "THINOUTLINE")
+--		debuffIcon.timerParent.text:SetShadowColor(0, 0, 0)
+--		debuffIcon.timerParent.text:SetShadowOffset(1, -1)
 	end
 end
 
@@ -168,10 +188,10 @@ end
 
 
 function InvenRaidFrames3Member_UpdateAura(self,isFullUpdate,updatedAuras)
-if isFullUpdate ~= nil then 
+--if isFullUpdate ~= nil then 
 --print("Debuff UNIT_AURA_check:")
 --print(isFullUpdate)
-end
+--end
 
 	local isDebuffUpdate = nil	
 	local isBossUpdate = nil	
@@ -212,9 +232,12 @@ end
 			local name, icon, count, debuffType, duration, expirationTime, _, _, _, spellId, _, isBossAura = UnitDebuff(self.displayedUnit, i)--local name, _, icon, count, debuffType, duration, expirationTime, _, _, _, spellId, _, isBossAura = UnitDebuff(self.displayedUnit, i) -- fix 8.0
 		-- 디버프 체크
 		if name then
+
 			if not ignoreAuraId[spellId] and not ignoreAuraName[name] then
+ 
 				debuffType = dispelTypes[debuffType] or "none"
 				if isBossAura and not bossAuraId[spellId] and not bossAuraName[name] and IRF3.db.userAura[spellId] ~= false and IRF3.db.userAura[name] ~= false then
+ 
 					IRF3.db.userAura[spellId] = true
 					bossAuraId[spellId] = true
 
@@ -230,9 +253,43 @@ end
 					baDuration = duration
 					baExpirationTime = expirationTime
  
-  
+					--glow 정보
+ 
+					--spellID 반짝임 우선
+ 
+					if IRF3.db.userAuraGlow[spellId] ==true and bossAuraId[spellId] then
+
+						baUserGlow = true
+						baUserGlowColorR =IRF3.db.userAuraGlowColorR[spellId]
+						baUserGlowColorG =IRF3.db.userAuraGlowColorG[spellId]
+						baUserGlowColorB =IRF3.db.userAuraGlowColorB[spellId]
+						if IRF3.db.useeachbossAura[spellId] then--개별설정이면
+							baAlertTimer = IRF3.db.bossAuraAlertTimer[spellId] or 0
+						else
+							baAlertTimer = 2.5
+						end
+
+
+ 
+					elseif IRF3.db.userAuraGlow[name] == true and bossAuraName[name] then
 	 
-						  
+
+						baUserGlow = true
+						baUserGlowColorR =IRF3.db.userAuraGlowColorR[name]
+						baUserGlowColorG =IRF3.db.userAuraGlowColorG[name]
+						baUserGlowColorB =IRF3.db.userAuraGlowColorB[name]
+						if IRF3.db.useeachbossAura[name] then--개별설정이면
+							baAlertTimer = IRF3.db.bossAuraAlertTimer[name] or 0
+						else
+							baAlertTimer = 2.5
+						end
+
+ 
+					else
+
+						--반짝임 효과 없을 경우 + 해제되어 사라질 경우
+						if LCG  then LCG.PixelGlow_Stop(self) end
+						baUserGlow = false
 						if IRF3.db.useeachbossAura[spellId] then--개별설정이면
 							baAlertTimer = IRF3.db.bossAuraAlertTimer[spellId] or 0
 						elseif IRF3.db.useeachbossAura[name] then
@@ -242,6 +299,16 @@ end
 						end 
 
 				
+
+
+					end
+
+						if not baUserGlowColorR and not baUserGlowColorG and not baUserGlowColorB  then
+							baUserGlowColorR=1
+							baUserGlowColorG=0
+							baUserGlowColorB=0
+						end
+
  
  
 
@@ -269,7 +336,9 @@ end
 							--baAlpha = IRF3.db.bossAuraAlpha1[name] or IRF3.db.units.bossAuraAlpha or 1 --투명토를 전체->개별로 변경. 개별 투명도 or 전체투명도 or default 1로 지정
 						end			
  
+--중요오라가 아닌 일반 디버프일때
 				elseif self.optionTable.debuffIconFilter[debuffType] and self.optionTable.debuffIcon > self.numDebuffIcons then
+ 
 
 					-- 디버프 아이콘
 					self.numDebuffIcons = self.numDebuffIcons + 1
@@ -284,6 +353,22 @@ end
 						end
 						debuffIcon.icon:SetTexture(icon)
 						debuffIcon.count:SetText(count and count > 1 and count or nil)
+ 
+--			debuffIcon.timerParent.text:SetText(duration)
+--			debuffIcon.endTime = expirationTime
+--			debuffIcon.startTime = expirationTime - duration
+			debuffIcon.cooldown:SetCooldown(expirationTime - duration, duration)
+			debuffIcon.cooldown:Show()
+
+
+
+--			if not debuffIcon.ticker then
+--opt적용해야함
+--				debuffIcon.ticker = C_Timer.NewTicker(0.1, function() debuffIconOnUpdate(debuffIcon, 1) end)
+--			end
+--			debuffIconOnUpdate(debuffIcon, 1)
+
+
 						debuffIcon:Show()
 					end
 				end
@@ -339,20 +424,42 @@ end
 		if self.optionTable.bossAuraTimer and baDuration and (baDuration > 0) then
 			self.bossAura.cooldown:SetCooldown(baExpirationTime - baDuration, baDuration)
 			self.bossAura.cooldown:Show()
-self.bossAura.cooldown:SetSize(50, 50)
+			self.bossAura.cooldown:SetSize(50, 50)
 --print("1")
 		else
 			self.bossAura.cooldown:Hide()
+
 		end
+
 		self.bossAura:Show()
 
+
+--glow 효과
+
+
+if baUserGlow and type(baUserGlowColorR) == "number" and type(baUserGlowColorG) == "number" and type(baUserGlowColorB) == "number" then 
+
+
+if    (glowinit[self.displayedUnit] or false)==false then --반짝임효과가 활성화안된상태에서만 표시. Glow_Stop에서 다시 true로 변경
+
+--다수의 중요오라가 동시에 적용될 때, 색상이 정확하게 적용되지 않음
+	if LCG then
+	LCG.PixelGlow_Start(self,{baUserGlowColorR,baUserGlowColorG,baUserGlowColorB},8,0.2,nil,2,0,0,false)
+	end
+	glowinit[self.displayedUnit]=true --반복활성화되지않도록 false처리
+
+
+end
+
+--      lib.PixelGlow_Start(r,color,N,frequency,length,th,xOffset,yOffset,border,key,frameLevel)
+end
  
 		if baDuration and baDuration > 0 and baExpirationTime then
 			self.bossAura.endTime = baExpirationTime
 			self.bossAura.startTime = baExpirationTime - baDuration
 			self.bossAura.alertTimer = baAlertTimer
 			if not self.bossAura.ticker then
-				self.bossAura.ticker = C_Timer.NewTicker(0.5, function() bossAuraOnUpdate(self.bossAura, self.optionTable.bossAuraOpt) end)
+				self.bossAura.ticker = C_Timer.NewTicker(0.1, function() bossAuraOnUpdate(self.bossAura, self.optionTable.bossAuraOpt) end)
 			end
 			bossAuraOnUpdate(self.bossAura, self.optionTable.bossAuraOpt)
 		else
@@ -363,11 +470,23 @@ self.bossAura.cooldown:SetSize(50, 50)
 			self.bossAura.timerParent.text:SetText(nil)
 		end
 	else
+ 
 		hideIcon(self.bossAura)
-end 
+ --glow 효과 --ba index가 없어지면(디버프가끝나면) glow도 같이 종료
 
+	if LCG   then LCG.PixelGlow_Stop(self) end
+	glowinit[self.displayedUnit]=false
+end 
+ 
 	for i = self.numDebuffIcons + 1, 5 do
 		hideIcon(self["debuffIcon"..i])
+--jws
+--		if self["debuffIcon"..i].ticker then
+--			self["debuffIcon"..i].ticker:Cancel()
+--			self["debuffIcon"..i].ticker = nil
+--		end
+--		self["debuffIcon"..i].timerParent.text:SetText(nil)
+
 	end
 	if dispelable then
 
@@ -385,25 +504,31 @@ end
 
 
 function InvenRaidFrames3Member_BossAuraOnLoad(self)
+
 	self.cooldown.noOCC = true
+	self.cooldown.noCooldownCount = true
+	self.cooldown:SetHideCountdownNumbers(true)
+end
+
+function InvenRaidFrames3Member_debuffIconOnLoad(self)
+
+	self.cooldown.noOCC = false
 	self.cooldown.noCooldownCount = true
 	self.cooldown:SetHideCountdownNumbers(true)
 end
 
 local tooltipUpdate = 0
 function InvenRaidFrames3Member_AuraIconOnUpdate(self, elapsed)
-	if not InvenRaidFrames3.tootipState then return end
+
+	if not InvenRaidFrames3.tootipState then  return end
 	tooltipUpdate = tooltipUpdate + elapsed
 	if tooltipUpdate > 0.1 then
+
 		tooltipUpdate = 0
 		if self:IsMouseOver() then
-			if IRF3.db.units.displayDebuffTooltip then
-			
-				GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 0, 0)
-				GameTooltip:SetUnitDebuff(self:GetParent().displayedUnit, self:GetID())
-			else
-				GameTooltip:Hide()
-			end
+			GameTooltip:SetOwner(self, "ANCHOR_RIGHT", 0, 0)
+			GameTooltip:SetUnitDebuff(self:GetParent().displayedUnit, self:GetID())
+		 
 		elseif GameTooltip:IsOwned(self) then
 			GameTooltip:Hide()
 		end

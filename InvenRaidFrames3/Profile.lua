@@ -32,6 +32,7 @@ local default = {
 	FadeInFrequency=1,
 	enableInstantHealth = false,
 	enableHealComm = false,
+	smootheffect = false,
 	units = {
 		backgroundColor = { 0.10, 0.10, 0.10, 0.55 },
 		orientation = 1,
@@ -40,7 +41,7 @@ local default = {
 		healIcon = true, healIconOther = true, showhealers=false, healIconPos = "BOTTOMLEFT", healIconSize = 10,
 		displayRaidRoleIcon = true, displayRaidRoleIcon2 = true, roleIconPos = "TOPLEFT", roleIconSize = 12, centerStatusIcon = true, roleIcontype = 0,
 		useRaidIcon = true, displayRaidRoleIconTank = false, raidIconPos = "TOPLEFT", raidIconSize = 12, raidIconSelf = true, raidIconTarget = false, raidIconFilter = { true, true, true, true, true, true, true, true },
-		useClassColors = true, className = false, outRangeName = true, offlineName = true, deathName = true, outRangeAlpha = 0.35,
+		useClassColors = true, className = false, outRangeName = true, outRangeName2 = false, offlineName = true, deathName = true, outRangeAlpha = 0.35,
 		useBossAura = true, bossAuraSize = 18, bossAuraPos = "CENTER", bossAuraAlpha = 0.75, bossAuraTimer = true,
 		bossAuraOpt = 1,	-- 1:남은 시간 2:경과 시간 0:시간 표시 안함
 		useSurvivalSkill = true, enableSurvivalMultiline =true, showSurvivalSkillTimer = true, showSurvivalSkillSub = false, showSurvivalSkillPotion = true,
@@ -64,7 +65,6 @@ local default = {
 		},
 		debuffIcon = 5, debuffIconSize = 10, debuffIconPos = "TOPRIGHT", debuffIconType = 1,	-- 1:Icon+Color 2:Icon 3:Color
 		debuffIconFilter = { Magic = true, Curse = true, Disease = true, Poison = true, none = true },
-		displayDebuffTooltip=true,
 		buffIconSize = 12, buffIconPos = "LEFT",
 		useAggroArrow = true, aggroType = 1, -- 1:사용 안함 2:항상 3:파티/공격대 4:공격대
 		aggroDetailColor = true,
@@ -114,7 +114,7 @@ local default = {
 		Poison = { DebuffTypeColor.Poison.r, DebuffTypeColor.Poison.g, DebuffTypeColor.Poison.b },
 		none = { DebuffTypeColor.none.r, DebuffTypeColor.none.g, DebuffTypeColor.none.b },
 	},
-	ignoreAura = {}, userAura = {},  useeachbossAura = {}, bossAuraAlertTimer={}, bossAuraSize1={}, bossAuraAlpha1={}
+	ignoreAura = {}, userAura = {}, userAuraGlow = {}, useeachbossAura = {}, userAuraGlowColorR={},userAuraGlowColorG={},userAuraGlowColorB={},bossAuraAlertTimer={}, bossAuraSize1={}, bossAuraAlpha1={}
 }
 
 function IRF3:InitDB()

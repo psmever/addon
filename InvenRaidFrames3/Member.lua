@@ -48,6 +48,24 @@ IRF3.visibleMembers = {}
 
 
 --local libCLHealth = LibStub("LibCombatLogHealth-1.0")
+local LibSmooth = LibStub("LibSmoothStatusBar-1.0")
+local SmoothBar = select(2, ...)
+local SmoothBarScript =LibSmooth.frame:GetScript("OnUpdate")
+
+ 
+
+-- Enable LibSmooth on frame
+function SmoothBar:OnEnable(frame)
+	if frame.healthBar then LibSmooth:SmoothBar(frame.healthBar) end
+	if frame.powerBar then LibSmooth:SmoothBar(frame.powerBar) end
+end
+
+-- Disable LibSmooth on frame
+function SmoothBar:OnDisable(frame)
+	if frame.healthBar then LibSmooth:ResetBar(frame.healthBar) end
+	if frame.powerBar then LibSmooth:ResetBar(frame.powerBar) end
+end
+
 
 local CallbackHandler = LibStub("CallbackHandler-1.0")
 --local initAggroShout={} 
@@ -212,24 +230,25 @@ else
 end
 
 
+
+  
+
 local libtext=""
 if IRF3.db.enableInstantHealth then libtext = libtext ..L["library_1"] end
 if IRF3.db.enableHealComm then libtext=libtext .. L["library_2"] end
-
+if IRF3.db.smootheffect then libtext=libtext .. L["library_3"] end
 
 if #libtext > 0 then
 
-	print("|cFF0FFF00IRF3:|r"..L["library_3"] .. string.sub(libtext,2,#libtext))
+	print("|cFF0FFF00IRF3:|r"..L["library_9"] .. string.sub(libtext,2,#libtext))
 else
-	print("|cFF0FFF00IRF3:|r"..L["library_4"])
+	print("|cFF0FFF00IRF3:|r"..L["library_10"])
 end
 
 
 end
 
 function IRF3:SetupAll(update)
-
-
 
 	for _, header in pairs(self.headers) do
 		for _, member in pairs(header.members) do
@@ -265,10 +284,6 @@ local function setupMemberTexture(self)
 	self.powerBar:SetStatusBarTexture(statusBarTexture, "OVERLAY", 2)
 	self.healthBar:SetStatusBarTexture(statusBarTexture, "OVERLAY", 1)
 
- 
- 
-
- 
 
  
 
@@ -519,6 +534,7 @@ self.callbacks = CallbackHandler:New(self)
 	end
 
 	setupMemberTexture(self)
+
 	setupMemberPowerBar(self)
 	setupMemberBarOrientation(self)
 	setupMemberOutline(self)
@@ -549,8 +565,24 @@ self.callbacks = CallbackHandler:New(self)
 	else
 		self.healingtarget:SetShadowOffset(0, 0)
 	end
-	
+
+	 	--체력바,power바 애니메이션용
+ 
+	if IRF3.db.smootheffect then
+		if not LibSmooth.frame:GetScript("OnUpdate") then
+			LibSmooth.frame:SetScript("OnUpdate", SmoothBarScript)
+		end
+		SmoothBar:OnEnable(self)
+
+	else
+		LibSmooth.frame:SetScript("OnUpdate", nil)
+		SmoothBar:OnDisable(self)
+	end
+
 	InvenRaidFrames3Member_UpdateAll(self)
+
+
+
 end
  
 
@@ -1518,26 +1550,41 @@ function InvenRaidFrames3Member_OnUpdate(self)
 	-- 거리 측정을 해보니 거리가 바뀌었다면
 	if prevRange ~= self.outRange then
 		if self.outRange then  --시야 바깥일때는 체력바 업데이트 중지
-			self.healthBar:SetAlpha(self.optionTable.fadeOutOfRangeHealth and self.optionTable.fadeOutAlpha or 1)
-			self.powerBar:SetAlpha(self.optionTable.fadeOutOfRangePower and self.optionTable.fadeOutAlpha or 1)
+			self:SetAlpha(self.optionTable.fadeOutOfRangeHealth and self.optionTable.fadeOutAlpha or 1)
+
+			if not IRF3.db.units.outRangeName2 then --이름표에도 투명도 적용옵션체크.기본값(false)면 이름은 항상 표기
+				self.name:SetAlpha(1)
+			else
+				self.name:SetAlpha(self.optionTable.fadeOutOfRangeHealth and self.optionTable.fadeOutAlpha or 1)
+			end
+--			self.healthBar:SetAlpha(self.optionTable.fadeOutOfRangeHealth and self.optionTable.fadeOutAlpha or 1)
+--			self.powerBar:SetAlpha(self.optionTable.fadeOutOfRangePower and self.optionTable.fadeOutAlpha or 1)
 			self.myHealPredictionBar:SetAlpha(0)
 			self.myHoTPredictionBar:SetAlpha(0)
 			self.otherHealPredictionBar:SetAlpha(0)
 			self.otherHoTPredictionBar:SetAlpha(0)
 			self.absorbPredictionBar:SetAlpha(0)
+
+		
 			self.hasAggro = false  --어그로먹은 상태에서 시야밖으로 벗어나면 초기화처리(애드후 멀리가서 소멸등)
 			self.hasAggroValue = 0 --어그로먹은 상태에서 시야밖으로 벗어나면 초기화처리
 --			self.overAbsorbGlow:SetAlpha(0)
+
+
 		else --시야 안쪽일때 체력 바랑 기력 바 업데이트 시작
 
-			self.healthBar:SetAlpha(1)
-			self.powerBar:SetAlpha(1)
+--			self.healthBar:SetAlpha(1)
+--			self.powerBar:SetAlpha(1)
+			self:SetAlpha(1)
 			self.myHealPredictionBar:SetAlpha(IRF3.db.units.healPredictionAlpha)
 			self.myHoTPredictionBar:SetAlpha(IRF3.db.units.healPredictionAlpha) 
 			self.otherHealPredictionBar:SetAlpha(IRF3.db.units.healPredictionAlpha)
 			self.otherHoTPredictionBar:SetAlpha(IRF3.db.units.healPredictionAlpha)
 			self.absorbPredictionBar:SetAlpha(IRF3.db.units.healPredictionAlpha)
 --			self.overAbsorbGlow:SetAlpha(0)
+	
+
+
 			InvenRaidFrames3Member_UpdateHealth(self)
 			InvenRaidFrames3Member_UpdateMaxPower(self)
 			InvenRaidFrames3Member_UpdatePower(self)
@@ -1588,23 +1635,43 @@ function InvenRaidFrames3Member_OnUpdate2(self)
 		self.outRange = checkedRange and not inRange
 	end
 	if self.outRange then
-		self.healthBar:SetAlpha(self.optionTable.fadeOutOfRangeHealth and self.optionTable.fadeOutAlpha or 1)
-		self.powerBar:SetAlpha(self.optionTable.fadeOutOfRangePower and self.optionTable.fadeOutAlpha or 1)
+		self:SetAlpha(self.optionTable.fadeOutOfRangeHealth and self.optionTable.fadeOutAlpha or 1)
+--		self.name:SetIgnoreParentAlpha(true)
+
+
+
+
+		if not IRF3.db.units.outRangeName2 then --이름표에도 투명도 적용옵션체크.기본값(false)면 이름은 항상 표기
+			self.name:SetAlpha(1)
+		else
+			self.name:SetAlpha(self.optionTable.fadeOutOfRangeHealth and self.optionTable.fadeOutAlpha or 1)
+		end
+		--self.healthBar:SetAlpha(self.optionTable.fadeOutOfRangeHealth and self.optionTable.fadeOutAlpha or 1)
+		--self.powerBar:SetAlpha(self.optionTable.fadeOutOfRangePower and self.optionTable.fadeOutAlpha or 1)
 		self.myHealPredictionBar:SetAlpha(0)
 		self.myHoTPredictionBar:SetAlpha(0)
 		self.otherHealPredictionBar:SetAlpha(0)
 		self.otherHoTPredictionBar:SetAlpha(0)
 		self.absorbPredictionBar:SetAlpha(0)
 --		self.overAbsorbGlow:SetAlpha(0)
+
+
+
 	else
-		self.healthBar:SetAlpha(1)
-		self.powerBar:SetAlpha(1)
+
+		self:SetAlpha(1)
+--		self.healthBar:SetAlpha(1)
+--		self.powerBar:SetAlpha(1)
+
+
 		self.myHealPredictionBar:SetAlpha(IRF3.db.units.healPredictionAlpha)
 		self.myHoTPredictionBar:SetAlpha(IRF3.db.units.healPredictionAlpha)
 		self.otherHealPredictionBar:SetAlpha(IRF3.db.units.healPredictionAlpha)
 		self.otherHoTPredictionBar:SetAlpha(IRF3.db.units.healPredictionAlpha)
 		self.absorbPredictionBar:SetAlpha(IRF3.db.units.healPredictionAlpha)
 --		self.overAbsorbGlow:SetAlpha(0)
+
+
 	end
 
 

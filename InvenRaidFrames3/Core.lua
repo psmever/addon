@@ -156,8 +156,8 @@ local tankpx = self.db.tankpx
 local tankpy = self.db.tankpy
 
 self.tankheaders[0]:ClearAllPoints()
-
 if IRF3.db.enableTankFrame then 
+
 
 
 		self.tankheaders[0]:SetPoint(self.db.anchor, self , tankpx,tankpy)
@@ -237,6 +237,7 @@ end
 end
 
 function IRF3:UpdateTooltipState()
+
 	if self.db.units.tooltip == 0 then
 		self.tootipState = nil
 	elseif self.db.units.tooltip == 1 then
@@ -248,6 +249,7 @@ function IRF3:UpdateTooltipState()
 	else
 		self.tootipState = nil
 	end
+
 	if self.onEnter then
 		InvenRaidFrames3Member_OnEnter(self.onEnter)
 	end
@@ -676,6 +678,8 @@ UIDropDownMenu_Initialize(IRF3.mapButtonMenu, initializeDropDown)
 
 
 IRF3.libCLHealth = LibStub("LibCombatLogHealth-1.0")
+
+
 
 function IRF3:HealComm_HealUpdated(event, casterGUID, spellID, healType, endTime, ...)
  
