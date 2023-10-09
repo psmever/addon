@@ -3,6 +3,8 @@ if not WeakAuras.IsLibsOK() then return end
 local L = WeakAuras.L
 
 -- WeakAuras/Templates
+	L["< 4 stacks"] = "< 4 stacks"
+	L["5 stacks"] = "5 stacks"
 	L["Abilities"] = "Abilities"
 	L["Add Triggers"] = "Add Triggers"
 	L["Always Active"] = "Always Active"
@@ -55,6 +57,8 @@ local L = WeakAuras.L
 	L["Highlight while spell is active."] = "Highlight while spell is active."
 	L["Hold CTRL to create multiple auras at once"] = "Hold CTRL to create multiple auras at once"
 	L["Keeps existing triggers intact"] = "Keeps existing triggers intact"
+	L["Max 3"] = "Max 3"
+	L["Max 4"] = "Max 4"
 	L["Next"] = "Next"
 	L["Only show the aura if the target has the debuff."] = "Only show the aura if the target has the debuff."
 	L["Only show the aura when the item is on cooldown."] = "Only show the aura when the item is on cooldown."

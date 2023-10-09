@@ -1,7 +1,7 @@
-## Interface: 11403
+## Interface: 11404
 ## Title: WeakAuras Templates
 ## Author: The WeakAuras Team
-## Version: 5.3.4
+## Version: 5.8.0
 ## Notes: Templates for WeakAuras
 ## X-Category: Interface Enhancements
 ## Globe-Main: WeakAuras
@@ -12,6 +12,6 @@
 locales.xml
 
 TriggerTemplates.lua
-TriggerTemplatesDataClassic.lua
+TriggerTemplatesDataClassicEra.lua
 
 AceGUI-Widgets\AceGUIContainer-WeakAurasTemplateGroup.lua

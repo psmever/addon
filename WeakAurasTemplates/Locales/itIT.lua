@@ -1,12 +1,16 @@
 if not WeakAuras.IsLibsOK() then return end
 
-if GetLocale() ~= "itIT" then
+if (GAME_LOCALE or GetLocale()) ~= "itIT" then
   return
 end
 
 local L = WeakAuras.L
 
 -- WeakAuras/Templates
+	--[[Translation missing --]]
+	L["< 4 stacks"] = "< 4 stacks"
+	--[[Translation missing --]]
+	L["5 stacks"] = "5 stacks"
 	L["Abilities"] = "Abilità"
 	L["Add Triggers"] = "Aggiungi Inneschi"
 	L["Always Active"] = "Sempre Attivo"
@@ -84,6 +88,10 @@ local L = WeakAuras.L
 	L["Hold CTRL to create multiple auras at once"] = "Hold CTRL to create multiple auras at once"
 	--[[Translation missing --]]
 	L["Keeps existing triggers intact"] = "Keeps existing triggers intact"
+	--[[Translation missing --]]
+	L["Max 3"] = "Max 3"
+	--[[Translation missing --]]
+	L["Max 4"] = "Max 4"
 	--[[Translation missing --]]
 	L["Next"] = "Next"
 	--[[Translation missing --]]

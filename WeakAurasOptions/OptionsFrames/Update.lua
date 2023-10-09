@@ -185,7 +185,7 @@ end
 local function RecurseDiff(ours, theirs, ignoredForDiffChecking)
   local diff, seen, same = {}, {}, true
   for key, ourVal in pairs(ours) do
-    if type(ignoredForDiffChecking) ~= table or ignoredForDiffChecking[key] ~= true then
+    if not (type(ignoredForDiffChecking) == "table" and ignoredForDiffChecking[key] == true) then
       seen[key] = true
       local theirVal = theirs[key]
       if type(ourVal) == "table" and type(theirVal) == "table" then
@@ -207,7 +207,7 @@ local function RecurseDiff(ours, theirs, ignoredForDiffChecking)
     end
   end
   for key, theirVal in pairs(theirs) do
-    if not seen[key] and (type(ignoredForDiffChecking) ~= table or ignoredForDiffChecking[key] ~= true) then
+    if not seen[key] and not (type(ignoredForDiffChecking) == "table" and ignoredForDiffChecking[key] == true) then
       diff[key] = theirVal
       same = false
     end
@@ -230,10 +230,10 @@ local function RecurseSerial(lines, depth, chunk)
   end
 end
 
-local function DebugPrintDiff(diff)
+local function DebugPrintDiff(diff, id, uid)
   local lines = {
     "==========================",
-    "Diff detected: ",
+    string.format("Diff detected for %q (%s):", id, uid),
     "{",
   }
   RecurseSerial(lines, 1, diff)
@@ -252,7 +252,7 @@ local function Diff(ours, theirs)
   local diff = RecurseDiff(ours, theirs, ignoredForDiffChecking)
   if diff then
     if debug then
-      DebugPrintDiff(diff, ours.id, theirs.id)
+      DebugPrintDiff(diff, theirs.id, theirs.uid)
     end
     return diff
   end
@@ -314,10 +314,11 @@ local function BuildUidMap(data, children, type)
     --- @type table<uid, UidMapData>
     map = {
     },
-    type = type -- Either old or new, only used for error checking
+    type = type, -- Either old or new, only used for error checking
+    root = data.uid,
+    totalCount = #children + 1,
+    idToUid = {}
   }
-  uidMap.root = data.uid
-  uidMap.totalCount = #children + 1
 
   -- Build helper map from id to uid
   local idToUid = {}
@@ -528,7 +529,9 @@ local function BuildUidMap(data, children, type)
     end
 
     if self.map[uid].anchorFrameFrame then
-      local target = self:GetIdFor(self.map[uid].anchorFrameFrame)
+      data.anchorFrameFrame = nil
+      local anchorUid = self.map[uid].anchorFrameFrame
+      local target = self:Contains(anchorUid) and self:GetIdFor(anchorUid)
       if target then
         data.anchorFrameFrame = "WeakAuras:" .. target
       end
@@ -1316,6 +1319,30 @@ local methods = {
     self:ReleaseChildren()
     self:AddBasicInformationWidgets(data, sender)
 
+    do
+      local highestVersion = data.internalVersion or 0
+      if children then
+        for _, child in ipairs(children) do
+          highestVersion = max(highestVersion, child.internalVersion or 0)
+        end
+      end
+
+      if (highestVersion > WeakAuras.InternalVersion()) then
+        local highestVersionWarning = AceGUI:Create("Label")
+        highestVersionWarning:SetFontObject(GameFontHighlight)
+        highestVersionWarning:SetFullWidth(true)
+        highestVersionWarning:SetText(L["This aura was created with a newer version of WeakAuras.\nUpgrade your version of WeakAuras or wait for next release before installing this aura."])
+        highestVersionWarning:SetColor(1, 0, 0)
+        self:AddChild(highestVersionWarning)
+        self.importButton:Hide()
+        self.viewCodeButton:Hide()
+        self:DoLayout()
+        return
+      else
+        self.importButton:Show()
+      end
+    end
+
     local matchInfoResult = AceGUI:Create("Label")
     matchInfoResult:SetFontObject(GameFontHighlight)
     matchInfoResult:SetFullWidth(true)
@@ -1429,23 +1456,6 @@ local methods = {
       scamCheckText:SetColor(1, 0, 0)
       self:AddChild(scamCheckText)
     end
-
-    local highestVersion = data.internalVersion or 0
-    if children then
-      for _, child in ipairs(children) do
-        highestVersion = max(highestVersion, child.internalVersion or 0)
-      end
-    end
-
-    if (highestVersion > WeakAuras.InternalVersion()) then
-      local highestVersionWarning = AceGUI:Create("Label")
-      highestVersionWarning:SetFontObject(GameFontHighlight)
-      highestVersionWarning:SetFullWidth(true)
-      highestVersionWarning:SetText(L["This aura was created with a newer version of WeakAuras.\nIt might not work correctly with your version!"])
-      highestVersionWarning:SetColor(1, 0, 0)
-      self:AddChild(highestVersionWarning)
-    end
-
 
     local currentBuild = floor(WeakAuras.BuildInfo / 10000)
     local importBuild = data.tocversion and floor(data.tocversion / 10000)
@@ -1638,6 +1648,7 @@ local methods = {
             oldData.sortHybridTable = newData.sortHybridTable
             oldData.uid = uid
             oldData.id = matchInfo.newUidMap:GetIdFor(uid)
+            oldData.anchorFrameFrame = newData.anchorFrameFrame
             return oldData
           else
             return matchInfo.newUidMap:GetPhase2Data(uid)
@@ -2072,7 +2083,7 @@ local updateFrame
 local function ConstructUpdateFrame(frame)
   local group = AceGUI:Create("ScrollFrame");
   group.frame:SetParent(frame);
-  group.frame:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -16);
+  group.frame:SetPoint("TOPLEFT", frame, "TOPLEFT", 16, -63);
   group.frame:SetPoint("BOTTOMRIGHT", frame, "BOTTOMRIGHT", -16, 46);
   group.frame:Hide();
   group:SetLayout("flow");

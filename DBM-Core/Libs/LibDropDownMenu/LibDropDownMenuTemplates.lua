@@ -1,6 +1,6 @@
 
 local CreateFromMixins,_G,select = CreateFromMixins,_G,select
-local ExecuteFrameScript,PlaySound = ExecuteFrameScript,PlaySound;
+local ExecuteFrameScript,PlaySound,SOUNDKIT = ExecuteFrameScript,PlaySound,SOUNDKIT;
 
 setfenv(1,LibStub("LibDropDownMenu"));
 -- start of content from UIDropDownMenuTemplates.lua
@@ -97,4 +97,10 @@ end
 
 function UIDropDownCustomMenuEntryMixin:GetContextData()
 	return self.contextData;
+end
+
+ColorSwatchMixin = {}
+
+function ColorSwatchMixin:SetColor(color)
+	self.Color:SetVertexColor(color:GetRGB());
 end

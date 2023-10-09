@@ -1,12 +1,14 @@
 if not WeakAuras.IsLibsOK() then return end
 
-if GetLocale() ~= "zhCN" then
+if (GAME_LOCALE or GetLocale()) ~= "zhCN" then
   return
 end
 
 local L = WeakAuras.L
 
 -- WeakAuras/Templates
+	L["< 4 stacks"] = "小于4层"
+	L["5 stacks"] = "5层"
 	L["Abilities"] = "技能"
 	L["Add Triggers"] = "添加触发器"
 	L["Always Active"] = "总是激活"
@@ -59,6 +61,8 @@ local L = WeakAuras.L
 	L["Highlight while spell is active."] = "当法术激活时高亮"
 	L["Hold CTRL to create multiple auras at once"] = "按住 CTRL 键来一次性创建多个光环"
 	L["Keeps existing triggers intact"] = "保持现存触发器完整"
+	L["Max 3"] = "最大 3"
+	L["Max 4"] = "最大 4"
 	L["Next"] = "下一个"
 	L["Only show the aura if the target has the debuff."] = "只有在目标拥有减益效果时才显示此光环"
 	L["Only show the aura when the item is on cooldown."] = "只有当物品在冷却中时才显示此光环"

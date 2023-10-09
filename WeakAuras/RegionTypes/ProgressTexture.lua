@@ -58,9 +58,9 @@ local default = {
   slantMode = "INSIDE"
 };
 
-WeakAuras.regionPrototype.AddAlphaToDefault(default);
+Private.regionPrototype.AddAlphaToDefault(default);
 
-WeakAuras.regionPrototype.AddAdjustedDurationToDefault(default);
+Private.regionPrototype.AddAdjustedDurationToDefault(default);
 
 local screenWidth, screenHeight = math.ceil(GetScreenWidth() / 20) * 20, math.ceil(GetScreenHeight() / 20) * 20;
 
@@ -115,7 +115,7 @@ local properties = {
     type = "number",
     min = 0,
     max = 360,
-    step = 10,
+    bigStep = 10,
     default = 0
   },
   inverse = {
@@ -126,11 +126,20 @@ local properties = {
   mirror = {
     display = L["Mirror"],
     setter = "SetMirror",
-    type = "bool"
+    type = "bool",
+  },
+  rotation = {
+    display = L["Texture Rotation"],
+    setter = "SetTexRotation",
+    type = "number",
+    min = 0,
+    max = 360,
+    bigStep = 1,
+    default = 0
   }
 }
 
-WeakAuras.regionPrototype.AddProperties(properties, default);
+Private.regionPrototype.AddProperties(properties, default);
 
 local function GetProperties(data)
   local overlayInfo = Private.GetOverlayInfo(data);
@@ -209,7 +218,7 @@ function spinnerFunctions.SetProgress(self, region, angle1, angle2)
 
   local crop_x = region.crop_x or 1;
   local crop_y = region.crop_y or 1;
-  local texRotation = region.texRotation or 0
+  local texRotation = region.effectiveTexRotation or 0
   local mirror_h = region.mirror_h or false;
   if region.mirror then
     mirror_h = not mirror_h
@@ -687,7 +696,7 @@ local textureFunctions = {
     local region = self.region;
     local crop_x = region.crop_x or 1;
     local crop_y = region.crop_y or 1;
-    local texRotation = region.texRotation or 0
+    local texRotation = region.effectiveTexRotation or 0
     local mirror_h = region.mirror_h or false;
     if region.mirror then
       mirror_h = not mirror_h
@@ -804,6 +813,7 @@ local function convertToProgress(rprogress, additionalProgress, adjustMin, total
   local startProgress = 0;
   local endProgress = 0;
 
+
   if (additionalProgress.min and additionalProgress.max) then
     if (totalWidth ~= 0) then
       startProgress = (additionalProgress.min - adjustMin) / totalWidth;
@@ -853,11 +863,10 @@ local function SetAdditionalProgress(self, additionalProgress, min, max, inverse
   local effectiveInverse = (inverse and not self.inverseDirection) or (not inverse and self.inverseDirection);
 
   if (additionalProgress) then
+    local totalWidth = max - min;
     ensureExtraTextures(self, #additionalProgress);
     for index, additionalProgress in ipairs(additionalProgress) do
       local extraTexture = self.extraTextures[index];
-
-      local totalWidth = max - min;
       local startProgress, endProgress = convertToProgress(self.progress, additionalProgress, min, totalWidth, effectiveInverse, self.overlayclip);
       if ((endProgress - startProgress) == 0) then
         extraTexture:Hide();
@@ -1005,7 +1014,7 @@ local function create(parent)
   -- Use a dummy object for the SmoothStatusBarMixin, because our SetValue
   -- is used for a different purpose
   region.smoothProgress = {};
-  Mixin(region.smoothProgress, SmoothStatusBarMixin);
+  Mixin(region.smoothProgress, Private.SmoothStatusBarMixin);
   region.smoothProgress.SetValue = function(self, progress)
     region:SetValueOnTexture(progress);
     region:UpdateAdditionalProgress();
@@ -1021,7 +1030,7 @@ local function create(parent)
 
   region.SetOrientation = SetOrientation;
 
-  WeakAuras.regionPrototype.create(region);
+  Private.regionPrototype.create(region);
 
   return region;
 end
@@ -1033,7 +1042,7 @@ local function TimerTick(self)
 end
 
 local function modify(parent, region, data)
-  WeakAuras.regionPrototype.modify(parent, region, data);
+  Private.regionPrototype.modify(parent, region, data);
 
   local background, foreground = region.background, region.foreground;
   local foregroundSpinner, backgroundSpinner = region.foregroundSpinner, region.backgroundSpinner;
@@ -1209,8 +1218,8 @@ local function modify(parent, region, data)
     DoPosition(region)
   end
 
-  function region:Rotate(angle)
-    region.texRotation = angle or 0
+  function region:UpdateEffectiveRotation()
+    region.effectiveTexRotation = region.texAnimationRotation or region.texRotation
     if (data.orientation == "CLOCKWISE" or data.orientation == "ANTICLOCKWISE") then
       region.foregroundSpinner:UpdateSize();
       region.backgroundSpinner:UpdateSize();
@@ -1226,9 +1235,19 @@ local function modify(parent, region, data)
     end
   end
 
-  region:Rotate(data.rotation)
+  function region:SetAnimRotation(angle)
+    region.texAnimationRotation = angle
+    region:UpdateEffectiveRotation()
+  end
 
-  function region:GetRotation()
+  function region:SetTexRotation(angle)
+    region.texRotation = angle
+    region:UpdateEffectiveRotation()
+  end
+
+  region:SetTexRotation(data.rotation)
+
+  function region:GetBaseRotation()
     return region.texRotation
   end
 
@@ -1308,10 +1327,12 @@ local function modify(parent, region, data)
     region.PreShow = nil
   end
 
+  region.TimerTick = nil
   function region:Update()
     local state = region.state
 
     local max
+    local adjustMin
     if state.progressType == "timed" then
       local expirationTime
       if state.paused == true then
@@ -1320,7 +1341,7 @@ local function modify(parent, region, data)
         end
         if region.TimerTick then
           region.TimerTick = nil
-          region:UpdateRegionHasTimerTick()
+          region.subRegionEvents:RemoveSubscriber("TimerTick", region)
         end
         expirationTime = GetTime() + (state.remaining or 0)
       else
@@ -1329,7 +1350,7 @@ local function modify(parent, region, data)
         end
         if not region.TimerTick then
           region.TimerTick = TimerTick
-          region:UpdateRegionHasTimerTick()
+          region.subRegionEvents:AddSubscriber("TimerTick", region, true)
         end
         expirationTime = state.expirationTime and state.expirationTime > 0 and state.expirationTime or math.huge;
       end
@@ -1338,7 +1359,7 @@ local function modify(parent, region, data)
       if region.adjustedMinRelPercent then
         region.adjustedMinRel = region.adjustedMinRelPercent * duration
       end
-      local adjustMin = region.adjustedMin or region.adjustedMinRel or 0;
+      adjustMin = region.adjustedMin or region.adjustedMinRel or 0;
       if duration == 0 then
         max = 0
       elseif region.adjustedMax then
@@ -1361,7 +1382,7 @@ local function modify(parent, region, data)
       if region.adjustedMinRelPercent then
         region.adjustedMinRel = region.adjustedMinRelPercent * total
       end
-      local adjustMin = region.adjustedMin or region.adjustedMinRel or 0;
+      adjustMin = region.adjustedMin or region.adjustedMinRel or 0;
 
       if region.adjustedMax then
         max = region.adjustedMax
@@ -1375,7 +1396,7 @@ local function modify(parent, region, data)
       region:SetValue(value - adjustMin, max - adjustMin);
       if region.TimerTick then
         region.TimerTick = nil
-        region:UpdateRegionHasTimerTick()
+        region.subRegionEvents:RemoveSubscriber("TimerTick", region)
       end
     else
       if region.paused then
@@ -1384,13 +1405,13 @@ local function modify(parent, region, data)
       region:SetTime(0, math.huge)
       if region.TimerTick then
         region.TimerTick = nil
-        region:UpdateRegionHasTimerTick()
+        region.subRegionEvents:RemoveSubscriber("TimerTick", region)
       end
     end
 
     max = max or 0
 
-    region:SetAdditionalProgress(state.additionalProgress, region.adjustMin or 0, region.state.duration ~= 0 and max or state.total or state.duration or 0, state.inverse)
+    region:SetAdditionalProgress(state.additionalProgress, adjustMin or 0, region.state.duration ~= 0 and max or state.total or state.duration or 0, state.inverse)
 
     if state.texture then
       region:SetTexture(state.texture)
@@ -1461,7 +1482,7 @@ local function modify(parent, region, data)
     end
   end
 
-  WeakAuras.regionPrototype.modifyFinish(parent, region, data);
+  Private.regionPrototype.modifyFinish(parent, region, data);
 end
 
 local function validate(data)

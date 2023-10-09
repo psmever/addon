@@ -1,33 +1,21 @@
-# [5.3.4](https://github.com/WeakAuras/WeakAuras2/tree/5.3.4) (2022-12-27)
+# [5.8.0](https://github.com/WeakAuras/WeakAuras2/tree/5.8.0) (2023-10-08)
 
-[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.3.3...5.3.4)
+[Full Changelog](https://github.com/WeakAuras/WeakAuras2/compare/5.7.2...5.8.0)
 
 ## Highlights
 
- - Bug fixes 
+ - This is a re-release of 5.7.2 with a proper version number and two bug fixes.
+
+- NOTE: This version has a change that affects some aura's scaling. If you log in and things look different and you just want them to look the same as before, go to the "Position Settings" in the "Display" tab and disable "Set Parent to Anchor".
+
+- If, after doing that, things still don't look right, please create an issue! As always making a backup of your settings before upgrading is a good idea. Please be aware that trying to revert to an old version of WeakAuras will brick your data, we fixed an issue with that but for this upgrade, make sure you do your backup before trying to revert to an older release.
+
+- Also, if you shared your aura with someone and they say it broke their auras, don't panic and let them know that all they have to do is to update the WeakAuras addon. 
 
 ## Commits
 
-InfusOnWoW (6):
+InfusOnWoW (2):
 
-- Progress Texture: Don't animate smoothly on show
-- Feral Templates: Fix missing/wrong buffs
-- Fix Dragonriding load option when transitioning from riding to taxi
-- Fix textreplacement for %% input
-- Prevent very old ZT trackers from breaking the options
-- Fix Spell Count difference tracking not being detected
-
-emptyrivers (2):
-
-- bump widget version
-- reset font object on acquire
-
-mrbuds (2):
-
-- Make WeakAuras.SpecRolePositionForUnit correctly return 3 values
-- Aurabar gradient: wotlk ptr switched to retail api, fixes #4148
-
-nullKomplex (1):
-
-- Fix power cost of abilities that change with certain auras.
+- Fix regression in "Continously update Move Speed"
+- Add AceGUIWidget-WeakAurasMultiLineEditBoxWithEnter to all .toc files
 

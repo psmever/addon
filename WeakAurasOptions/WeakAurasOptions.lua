@@ -299,8 +299,6 @@ local function CreateNewGroupFromSelection(regionType, resetChildPositions)
     local oldParentData = WeakAuras.GetData(oldParent)
     if (oldParent) then
       local oldIndex = childButton:GetGroupOrder()
-      print("CHILD ID", childId, "OLD PARENT", oldParent, "OLD INDEX", oldIndex)
-      print("###", oldParentData.controlledChildren[oldIndex])
 
       tremove(oldParentData.controlledChildren, oldIndex)
       WeakAuras.Add(oldParentData)
@@ -442,30 +440,7 @@ StaticPopupDialogs["WEAKAURAS_CONFIRM_DELETE"] = {
   button2 = L["Cancel"],
   OnAccept = function(self)
     if self.data then
-      local suspended = OptionsPrivate.Private.PauseAllDynamicGroups()
-      OptionsPrivate.massDelete = true
-      for _, auraData in pairs(self.data.toDelete) do
-        WeakAuras.Delete(auraData)
-      end
-      OptionsPrivate.massDelete = false
-
-      if self.data.parents then
-        for id in pairs(self.data.parents) do
-          local parentData = WeakAuras.GetData(id)
-          local parentButton = OptionsPrivate.GetDisplayButton(id)
-          WeakAuras.UpdateGroupOrders(parentData)
-          if(#parentData.controlledChildren == 0) then
-            parentButton:DisableExpand()
-          else
-            parentButton:EnableExpand()
-          end
-          parentButton:SetNormalTooltip()
-          WeakAuras.Add(parentData)
-          WeakAuras.ClearAndUpdateOptions(parentData.id)
-        end
-      end
-      OptionsPrivate.Private.ResumeAllDynamicGroups(suspended)
-      OptionsPrivate.SortDisplayButtons(nil, true)
+      OptionsPrivate.DeleteAuras(self.data.toDelete, self.data.parents)
     end
   end,
   OnCancel = function(self)
@@ -476,25 +451,29 @@ StaticPopupDialogs["WEAKAURAS_CONFIRM_DELETE"] = {
   preferredindex = STATICPOPUP_NUMDIALOGS,
 }
 
-StaticPopupDialogs["WEAKAURAS_CONFIRM_IGNORE_UPDATES"] = {
-  text = L["Do you want to ignore all future updates for this aura"],
-  button1 = L["Yes"],
-  button2 = L["Cancel"],
-  OnAccept = function(self)
-    if self.data then
-      local auraData = WeakAuras.GetData(self.data)
+function OptionsPrivate.IsWagoUpdateIgnored(auraId)
+    local auraData = WeakAuras.GetData(auraId)
       if auraData then
         for child in OptionsPrivate.Private.TraverseAll(auraData) do
-          child.ignoreWagoUpdate = true
+          if child.ignoreWagoUpdate then
+            return true
+          end
         end
       end
-      OptionsPrivate.SortDisplayButtons(nil, true)
+    return false
+end
+
+function OptionsPrivate.HasWagoUrl(auraId)
+  local auraData = WeakAuras.GetData(auraId)
+    if auraData then
+      for child in OptionsPrivate.Private.TraverseAll(auraData) do
+        if child.url and child.url ~= "" then
+          return true
+        end
+      end
     end
-  end,
-  OnCancel = function(self) end,
-  whileDead = true,
-  preferredindex = STATICPOPUP_NUMDIALOGS,
-}
+  return false
+end
 
 function OptionsPrivate.ConfirmDelete(toDelete, parents)
   if toDelete then
@@ -770,6 +749,54 @@ local function LayoutDisplayButtons(msg)
   OptionsPrivate.Private.dynFrame:AddAction("LayoutDisplayButtons1", co1);
 end
 
+function OptionsPrivate.DeleteAuras(auras, parents)
+  local func1 = function()
+    frame:SetLoadProgressVisible(true)
+    local num = 0
+    local total = 0
+    for _, auraData in pairs(auras) do
+      total = total +1
+    end
+
+    frame.loadProgress:SetText(L["Deleting auras: "]..num.."/"..total)
+
+    local suspended = OptionsPrivate.Private.PauseAllDynamicGroups()
+    OptionsPrivate.massDelete = true
+    for _, auraData in pairs(auras) do
+      WeakAuras.Delete(auraData)
+      num = num +1
+      frame.loadProgress:SetText(L["Deleting auras: "]..num.."/"..total)
+      coroutine.yield()
+    end
+    OptionsPrivate.massDelete = false
+
+    if parents then
+      for id in pairs(parents) do
+        local parentData = WeakAuras.GetData(id)
+        local parentButton = OptionsPrivate.GetDisplayButton(id)
+        WeakAuras.UpdateGroupOrders(parentData)
+        if(#parentData.controlledChildren == 0) then
+          parentButton:DisableExpand()
+        else
+          parentButton:EnableExpand()
+        end
+        parentButton:SetNormalTooltip()
+        WeakAuras.Add(parentData)
+        WeakAuras.ClearAndUpdateOptions(parentData.id)
+        frame.loadProgress:SetText(L["Finishing..."])
+        coroutine.yield()
+      end
+    end
+    OptionsPrivate.Private.ResumeAllDynamicGroups(suspended)
+    OptionsPrivate.SortDisplayButtons(nil, true)
+
+    frame:SetLoadProgressVisible(false)
+  end
+
+  local co1 = coroutine.create(func1)
+  OptionsPrivate.Private.dynFrame:AddAction("Deleting Auras", co1)
+end
+
 function WeakAuras.ShowOptions(msg)
   local firstLoad = not(frame);
   OptionsPrivate.Private.Pause();
@@ -809,6 +836,10 @@ function WeakAuras.ShowOptions(msg)
     OptionsPrivate.Private.personalRessourceDisplayFrame:OptionsOpened();
   end
 
+  if frame.moversizer then
+    frame.moversizer:OptionsOpened()
+  end
+
   if not(firstLoad) then
     -- Show what was last shown
     local suspended = OptionsPrivate.Private.PauseAllDynamicGroups()
@@ -839,6 +870,7 @@ function WeakAuras.ShowOptions(msg)
   if firstLoad then
     frame:ShowTip()
   end
+
 end
 
 function OptionsPrivate.UpdateOptions()
@@ -996,12 +1028,13 @@ function OptionsPrivate.SortDisplayButtons(filter, overrideReset, id)
           child.frame:Show()
           child:AcquireThumbnail()
           frame.buttonsScroll:AddChild(child)
+        else
+          if not child.frame:IsShown() then
+            child.frame:Show()
+            child:AcquireThumbnail()
+          end
+          tinsert(frame.buttonsScroll.children, child)
         end
-        if not child.frame:IsShown() then
-          child.frame:Show()
-          child:AcquireThumbnail()
-        end
-        tinsert(frame.buttonsScroll.children, child)
       elseif child then
         child.frame:Hide()
         if child.ReleaseThumbnail then
@@ -1051,6 +1084,7 @@ function OptionsPrivate.SortDisplayButtons(filter, overrideReset, id)
                   child.frame:Show()
                   child:AcquireThumbnail()
                   frame.buttonsScroll:AddChild(child)
+                  buttonsShown[slug] = true
                 end
                 if not child.frame:IsShown() then
                   child.frame:Show()
@@ -1411,50 +1445,76 @@ end
 function OptionsPrivate.Drop(mainAura, target, action, area)
   WeakAuras_DropDownMenu:Hide()
 
-  local mode = ""
-  if (frame.pickedDisplay == tempGroup and #tempGroup.controlledChildren > 0) then
-    mode = "MULTI"
-  elseif mainAura.controlledChildren then
-    mode = "GROUP"
-  else
-    mode = "SINGLE"
-  end
+  local func1 = function()
+    frame:SetLoadProgressVisible(true)
 
-  local buttonsToSort = {}
+    local total = 0
+    local num = 0
+    for id, button in pairs(displayButtons) do
+      if button:IsDragging() then
+        total = total + 1
+      end
+    end
+    frame.loadProgress:SetText(L["Moving auras: "]..num.."/"..total)
 
-  for id, button in pairs(displayButtons) do
-    if button:IsDragging() then
-      tinsert(buttonsToSort, button)
+    local mode = ""
+    if (frame.pickedDisplay == tempGroup and #tempGroup.controlledChildren > 0) then
+      mode = "MULTI"
+    elseif mainAura.controlledChildren then
+      mode = "GROUP"
     else
-      button:Drop(mode, mainAura, target, action);
+      mode = "SINGLE"
     end
-  end
 
-  if mode == "MULTI" then
-    -- If we are dragging and dropping multiple auras at once, the order in which we drop is important
-    -- We want to preserve the top-down order
-    -- Depending on how exactly we find the insert position, we need to use the right order of insertions
-    if area == "GROUP" then
-      table.sort(buttonsToSort, CompareButtonOrderReverse)
-    elseif area == "BEFORE" then
-      table.sort(buttonsToSort, CompareButtonOrder)
-    else -- After
-      table.sort(buttonsToSort, CompareButtonOrderReverse)
+    local buttonsToSort = {}
+
+    for id, button in pairs(displayButtons) do
+      if button:IsDragging() then
+        tinsert(buttonsToSort, button)
+        num = num + 1
+        frame.loadProgress:SetText(L["Preparing auras: "]..num.."/"..total)
+      else
+        button:Drop(mode, mainAura, target, action);
+      end
+      coroutine.yield()
     end
+
+    num = 0
+    frame.loadProgress:SetText(L["Moving auras: "]..num.."/"..total)
+    if mode == "MULTI" then
+      -- If we are dragging and dropping multiple auras at once, the order in which we drop is important
+      -- We want to preserve the top-down order
+      -- Depending on how exactly we find the insert position, we need to use the right order of insertions
+      if area == "GROUP" then
+        table.sort(buttonsToSort, CompareButtonOrderReverse)
+      elseif area == "BEFORE" then
+        table.sort(buttonsToSort, CompareButtonOrder)
+      else -- After
+        table.sort(buttonsToSort, CompareButtonOrderReverse)
+      end
+    end
+
+    for _, button in ipairs(buttonsToSort) do
+      button:Drop(mode, mainAura, target, action)
+      num = num + 1
+      frame.loadProgress:SetText(L["Moving auras: "]..num.."/"..total)
+      coroutine.yield()
+    end
+
+    -- Update offset, this is a bit wasteful to do for every aura
+    -- But we also need to update the offset if a parent was dragged
+    for _, button in pairs(displayButtons) do
+      button:UpdateOffset();
+    end
+    coroutine.yield()
+    frame:SetLoadProgressVisible(false)
+    OptionsPrivate.SortDisplayButtons()
+    OptionsPrivate.UpdateButtonsScroll()
+    WeakAuras.FillOptions()
   end
 
-  for _, button in ipairs(buttonsToSort) do
-    button:Drop(mode, mainAura, target, action)
-  end
-
-  -- Update offset, this is a bit wasteful to do for every aura
-  -- But we also need to update the offset if a parent was dragged
-  for _, button in pairs(displayButtons) do
-    button:UpdateOffset();
-  end
-
-  OptionsPrivate.SortDisplayButtons()
-  OptionsPrivate.UpdateButtonsScroll()
+  local co1 = coroutine.create(func1)
+  OptionsPrivate.Private.dynFrame:AddAction("Dropping Auras", co1)
 end
 
 function OptionsPrivate.StartDrag(mainAura)
@@ -1903,7 +1963,8 @@ function OptionsPrivate.AddTextFormatOption(input, withHeader, get, addOption, h
 
 
   local seenSymbols = {}
-  OptionsPrivate.Private.ParseTextStr(input, function(symbol)
+
+  local parseFn = function(symbol)
     if not seenSymbols[symbol] then
       local _, sym = string.match(symbol, "(.+)%.(.+)")
       sym = sym or symbol
@@ -1933,7 +1994,15 @@ function OptionsPrivate.AddTextFormatOption(input, withHeader, get, addOption, h
         seenSymbols[symbol] = true
       end
     end
-  end)
+  end
+
+  if type(input) == "table" then
+    for _, txt in ipairs(input) do
+      OptionsPrivate.Private.ParseTextStr(txt, parseFn)
+    end
+  else
+    OptionsPrivate.Private.ParseTextStr(input, parseFn)
+  end
 
   if withHeader and (not index or index == total) then
     addOption("header_anchor",

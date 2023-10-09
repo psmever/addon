@@ -61,6 +61,8 @@ local function setCompatibleRestrictedRange(range)
 		return 80
 	elseif range <= 100 and not isClassic then
 		return 100
+	else--Mod passed a range that exceeds max range known apis can cover, we really don't have a way to measure this anymore so we return highest range we can measure based on game client
+		return isClassic and 43 or 100
 	end
 end
 
@@ -970,7 +972,7 @@ function rangeCheck:GetDistanceAll(checkrange)
 end
 
 do
-	local function UpdateRangeFrame(r, reverse)
+	local function UpdateLocalRangeFrame(r, reverse)
 		if rangeCheck:IsShown() then
 			rangeCheck:Hide(true)
 		else
@@ -985,9 +987,9 @@ do
 	SLASH_DBMRRANGE1 = "/rrange"
 	SLASH_DBMRRANGE2 = "/rdistance"
 	SlashCmdList["DBMRANGE"] = function(msg)
-		UpdateRangeFrame(tonumber(msg), false)
+		UpdateLocalRangeFrame(tonumber(msg), false)
 	end
 	SlashCmdList["DBMRRANGE"] = function(msg)
-		UpdateRangeFrame(tonumber(msg), true)
+		UpdateLocalRangeFrame(tonumber(msg), true)
 	end
 end
