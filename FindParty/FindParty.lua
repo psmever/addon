@@ -245,7 +245,7 @@ FP_Minimap_Button:SetScript("OnClick", function(self, button) FP_IconClicked(sel
 FP_Minimap_Button:SetScript("OnEnter", function(self)
 	GameTooltip:SetOwner(self, "ANCHOR_LEFT")
 	local msg = ""
-	for k,v in ipairs(FP_TOOLTIP_MINIMAP) do
+	for _,v in ipairs(FP_TOOLTIP_MINIMAP) do
 		msg = msg..v
 	end
 	if FP_Options.activated then
@@ -383,8 +383,8 @@ FP_Tooltip = {
 local function getDungeonFilterNum()
 	local num = 0
 
-	for idx, tbl in pairs(FP_Filter_Dungeon) do
-		for idx2, tbl2 in pairs(tbl) do
+	for _, tbl in pairs(FP_Filter_Dungeon) do
+		for _, tbl2 in pairs(tbl) do
 			num = num + 1
 		end
 	end
@@ -503,7 +503,7 @@ function FP_FilterIgnoreText(msg, ignoreTextTable, isTooltip)
 	tempMsg = msg
 	if not isTooltip then
 		-- 공백제거
-		tempMsg = string.gsub(tempMsg, " ", "")
+		--tempMsg = string.gsub(tempMsg, " ", "")
 		-- 대문자로 변환
 		tempMsg = string.upper(tempMsg)
 		-- 다시체크
@@ -553,8 +553,8 @@ function FP_DungeonParse(msg)
 	end
 
 	-- 던전을 찾는다(인덱스 테이블이라 순서가 섞일 우려가 없기 때문에, 잡다한 처리는 모조리 삭제. 가장 최근에 출시된 인던으로 무조건 분류.. 어느정도 오분류는 감안하자)
-	for idx, tbl in ipairs(FP_DUNGEON_KEYWORDS) do
-		for idx2, tbl2 in ipairs(tbl.dungeon) do
+	for _, tbl in ipairs(FP_DUNGEON_KEYWORDS) do
+		for _, tbl2 in ipairs(tbl.dungeon) do
 			for i = 1, #tbl2.keywords do
 				local keyword = tbl2.keywords[i]
 				if string.find(nmsg_dungeon, keyword) then
@@ -627,12 +627,8 @@ function FP_DungeonParse(msg)
 							break
 						end
 					end
-					for i = 1, #FP_HEROIC_POSTFIX_KEYWORDS do
-						local keyword = dungeon_keyword..FP_HEROIC_POSTFIX_KEYWORDS[i]
-						if string.find(nmsg, keyword) then
-							isHeroic = true
-							break
-						end
+					if string.find(nmsg, dungeon_keyword..FP_HEROIC_POSTFIX_KEYWORDS) then
+						isHeroic = true
 					end
 					for i = 1, #heroicTable do
 						local keyword = heroicTable[i]
@@ -654,7 +650,7 @@ function FP_DungeonParse(msg)
 					break
 				end
 				-- txtDifficulty 구하기
-				for idx, tbl in ipairs(FP_DIFFICULTY_KEYWORDS) do
+				for _, tbl in ipairs(FP_DIFFICULTY_KEYWORDS) do
 					for i = 1, #tbl.keywords do
 						local keyword = tbl.keywords[i]
 						if string.find(nmsg, keyword) then
@@ -682,7 +678,7 @@ function FP_DungeonParse(msg)
 				if not nmsg then return dungeon, difficultyTable[1]	end
 
 				-- difficulty 바로 구하기
-				for idx, tbl in ipairs(FP_DIFFICULTY_KEYWORDS) do
+				for _, tbl in ipairs(FP_DIFFICULTY_KEYWORDS) do
 					for i = 1, #tbl.keywords do
 						local keyword = tbl.keywords[i]
 						if string.find(nmsg, keyword) then
@@ -691,6 +687,10 @@ function FP_DungeonParse(msg)
 						end
 					end
 					if difficulty then break end
+				end
+				-- 리분 클래식 티탄 던전 체크 보강
+				if string.find(nmsg, dungeon_keyword..FP_TITAN_POSTFIX_KEYWORDS) then
+					difficulty = "titan"
 				end
 			end
 			-- 구한 난이도와 던전에 존재할 수 있는 난이도 테이블(difficultyTable)을 비교해서 난이도 최종 결정
@@ -749,8 +749,8 @@ end
 local function getCategory(dungeon)
 	local category
 	if dungeon then
-		for idx, tbl in ipairs(FP_DUNGEON_KEYWORDS) do
-			for idx2, tbl2 in ipairs(tbl.dungeon) do
+		for _, tbl in ipairs(FP_DUNGEON_KEYWORDS) do
+			for _, tbl2 in ipairs(tbl.dungeon) do
 				if tbl2.name == dungeon then
 					category = tbl.category
 					break
@@ -766,8 +766,8 @@ end
 local function getDungeonDifficultyTable(dungeon)
 	local difficultyTable = {}
 	if dungeon then
-		for idx, tbl in ipairs(FP_DUNGEON_KEYWORDS) do
-			for idx2, tbl2 in ipairs(tbl.dungeon) do
+		for _, tbl in ipairs(FP_DUNGEON_KEYWORDS) do
+			for _, tbl2 in ipairs(tbl.dungeon) do
 				if tbl2.name == dungeon then
 					difficultyTable = tbl2.difficulty
 					break
@@ -828,7 +828,7 @@ function FP_DropDownMenuFilterDungeon_Initialize(frame, level, menu)
 		info.keepShownOnClick = false
 		UIDropDownMenu_AddButton(info, level)
 	elseif (level == 2) then
-		for idx, tbl in ipairs(FP_DUNGEON_KEYWORDS[menu].dungeon) do
+		for _, tbl in ipairs(FP_DUNGEON_KEYWORDS[menu].dungeon) do
 			info = UIDropDownMenu_CreateInfo()
 			info.text = tbl.name
 			info.keepShownOnClick = true
@@ -881,14 +881,14 @@ function FP_FilterDungeonSelected(self, dungeon, difficulty, checked)
 			FP_Filter_Dungeon[category][dungeon][difficulty] = nil
 			-- 빈 테이블 삭제
 			local dungeon_tables = 0
-			for idx, tbl in pairs(FP_Filter_Dungeon[category][dungeon]) do
+			for _, tbl in pairs(FP_Filter_Dungeon[category][dungeon]) do
 				dungeon_tables = dungeon_tables + 1
 			end
 			if dungeon_tables == 0 then
 				FP_Filter_Dungeon[category][dungeon] = nil
 			end
 			local category_tables = 0
-			for idx, tbl in pairs(FP_Filter_Dungeon[category]) do
+			for _, tbl in pairs(FP_Filter_Dungeon[category]) do
 				category_tables = category_tables + 1
 			end
 			if category_tables == 0 then
@@ -906,7 +906,7 @@ function FP_FilterDungeonSelected(self, dungeon, difficulty, checked)
 			if not FP_Filter_Dungeon[category][dungeon] then
 				FP_Filter_Dungeon[category][dungeon] = {}
 				local difficultyTable = getDungeonDifficultyTable(dungeon)
-				for idx, tbl in ipairs(difficultyTable) do
+				for _, tbl in ipairs(difficultyTable) do
 					FP_Filter_Dungeon[category][dungeon][tbl] = true
 				end
 			end
@@ -915,7 +915,7 @@ function FP_FilterDungeonSelected(self, dungeon, difficulty, checked)
 			FP_Filter_Dungeon[category][dungeon] = nil
 			-- 빈 테이블 삭제
 			local category_tables = 0
-			for idx, tbl in pairs(FP_Filter_Dungeon[category]) do
+			for _, tbl in pairs(FP_Filter_Dungeon[category]) do
 				category_tables = category_tables + 1
 			end
 			if category_tables == 0 then
@@ -981,16 +981,16 @@ function FP_GetDungeonFilterList()
 	local i = 0
 	local num = getDungeonFilterNum()
 
-	for idx, tbl in pairs(FP_Filter_Dungeon) do
-		for idx2, tbl2 in pairs(tbl) do
+	for _, tbl in pairs(FP_Filter_Dungeon) do
+		for idx, _ in pairs(tbl) do
 			i = i + 1
 			-- 3개 마다 콤마
 			if i == num then
-				desc = desc..idx2
+				desc = desc..idx
 			elseif i % 3 == 0 then
-				desc = desc..idx2.."\n"
+				desc = desc..idx.."\n"
 			else
-				desc = desc..idx2..", "
+				desc = desc..idx..", "
 			end
 		end
 	end
@@ -1008,9 +1008,9 @@ function FP_SetDungeonFilterText()
 	if isDungeonFiltering and filtered_count > 1 then
 		desc = string.format(FP_DUNGEONFILTER_MULTI, filtered_count)
 	elseif isDungeonFiltering and filtered_count > 0 then
-		for idx, tbl in pairs(FP_Filter_Dungeon) do
-			for idx2, tbl2 in pairs(tbl) do
-				desc = string.format(FP_DUNGEONFILTER_SINGLE, idx2)
+		for _, tbl in pairs(FP_Filter_Dungeon) do
+			for idx, _ in pairs(tbl) do
+				desc = string.format(FP_DUNGEONFILTER_SINGLE, idx)
 			end
 		end
 	end
@@ -1020,11 +1020,11 @@ end
 
 function FP_DungeonFilter(dungeon, difficulty)
 	if isDungeonFiltering and getDungeonFilterNum() > 0 then
-		for idx, tbl in pairs(FP_Filter_Dungeon) do
-			for idx2, tbl2 in pairs(tbl) do
-				if dungeon == idx2 then
-					for idx3, tbl3 in pairs(tbl2) do
-						if difficulty == idx3 then
+		for _, tbl in pairs(FP_Filter_Dungeon) do
+			for idx, tbl2 in pairs(tbl) do
+				if dungeon == idx then
+					for idx2, _ in pairs(tbl2) do
+						if difficulty == idx2 then
 							return true
 						end
 					end
@@ -1319,7 +1319,7 @@ function FP_MenuClicked(self, button, menu, option)
 	elseif menu == "MENU_MIN" then
 		FP_ListAdjust(MIN)
 	elseif menu == "MENU_INFO" then
-		for i, v in ipairs(FP_HELPS) do FP_Nprint(v) end
+		for _, v in ipairs(FP_HELPS) do FP_Nprint(v) end
 	elseif menu == "SEL_SHOUT" then
 		local index = self:GetID()
 		local data = frameData[index]
@@ -1597,7 +1597,7 @@ local function setChannel(self, channel)
 	end
 	-- 존재하지 않는 채널 제거
 	local list = { GetChannelList() }
-	for channelname, bool in pairs(FP_Options["channel"]) do
+	for channelname, _ in pairs(FP_Options["channel"]) do
 		local isValidChannel = false
 		for i = 1, #list do
 			if i % 3 == 2 and list[i] == channelname then
@@ -1624,7 +1624,7 @@ local function setOption(self, option, number)
 
 	-- 체크표시 동기화를 위한 부분
 	if UIDROPDOWNMENU_MENU_LEVEL == 2 then
-		for idx, tbl in ipairs(FP_Option_Menu) do
+		for _, tbl in ipairs(FP_Option_Menu) do
 			if tbl.dbname == option then
 				for i = 1, (#tbl.value or 1) do
 					local button = _G["DropDownList2Button"..i]
@@ -1748,7 +1748,7 @@ function FP_DropDownMenuOption_Initialize(frame, level, menu)
 	level = level or 1
 	local info
 	if (level == 1) then
-		for idx, tbl in ipairs(FP_Option_Menu) do
+		for _, tbl in ipairs(FP_Option_Menu) do
 			info = UIDropDownMenu_CreateInfo()
 			info.text = tbl.name
 			info.keepShownOnClick = true
@@ -1810,7 +1810,7 @@ function FP_DropDownMenuOption_Initialize(frame, level, menu)
 			info = UIDropDownMenu_CreateInfo()
 			info.notCheckable = true
 			info.keepShownOnClick = false
-			for idx, tbl in ipairs(UIDROPDOWNMENU_MENU_VALUE) do
+			for _, tbl in ipairs(UIDROPDOWNMENU_MENU_VALUE) do
 				info.text = tbl.name
 				info.func = tbl.exec
 				UIDropDownMenu_AddButton(info, level)

@@ -1,4 +1,4 @@
-﻿-- Contributors: BNS333@Curse, 彩虹の多多@Curse
+﻿-- Contributors: BNS333@Curse, 彩虹の多多@Curse, RainbowUI@Curse
 
 local _, addonTable = ...
 local L = addonTable.L
@@ -23,6 +23,7 @@ L["DND"] = "勿擾"
 L["DND_TOOLTIP"] = "通知處於勿擾模式將不會在戰鬥中顯示，但會取代成在系統佇列。一但你離開戰鬥，就會開始跳出通知。"
 L["DOWNLOADS"] = "下載"
 L["FADE_OUT_DELAY"] = "淡出延遲"
+L["FILTERS"] = "過濾方式"
 L["FLUSH_QUEUE"] = "刷新佇列"
 L["FONTS"] = "字體"
 L["GROWTH_DIR"] = "成長方向"
@@ -33,12 +34,11 @@ L["GROWTH_DIR_UP"] = "上"
 L["ICON_BORDER"] = "圖示邊框"
 L["INFORMATION"] = "資訊"
 L["NAME"] = "名稱"
+L["OPEN_CONFIG"] = "開啟設定"
 L["RARITY_THRESHOLD"] = "最低物品品質"
 L["SCALE"] = "縮放"
 L["SHOW_ILVL"] = "顯示物品等級"
 L["SHOW_ILVL_DESC"] = "在物品名稱旁顯示物品等級。"
-L["SHOW_QUEST_ITEMS"] = "顯示任務物品"
-L["SHOW_QUEST_ITEMS_DESC"] = "不論品質都要顯示任務物品。"
 L["SIZE"] = "大小"
 L["SKIN"] = "外觀風格"
 L["STRATA"] = "框架層級"
@@ -60,8 +60,7 @@ L["YOU_RECEIVED"] = "你收到"
 L["TYPE_LOOT_ITEMS"] = "拾取(物品)"
 
 -- WotLK
-L["CURRENCY_THRESHOLD_DESC"] = "輸入 |cffffd200-1|r 來忽略此貨幣。 |cffffd2000|r來停用此過濾，或|cffffd200 0以上的任何數字|r來設置閾值，低於該閾值將不建立與跳出提示。"
-L["FILTERS"] = "過濾方式"
+L["CURRENCY_THRESHOLD_DESC"] = "輸入 |cffffd200-1|r 來忽略此貨幣，|cffffd2000|r 來停用過濾，或|cffffd200任何大於 0 的數字|r來設定值臨界值，低於這個數值將不會顯示通知。"
 L["NEW_CURRENCY_FILTER_DESC"] = "輸入兌換通貨 ID"
 L["THRESHOLD"] = "數量最少要"
 L["TYPE_ACHIEVEMENT"] = "成就"

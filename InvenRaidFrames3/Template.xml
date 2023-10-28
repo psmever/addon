@@ -21,7 +21,7 @@
 	<Button name="InvenRaidFrames3BaseTemplate" useParentLevel="true" hidden="true" virtual="true">
 		<Layers>
 			<Layer level="OVERLAY">
-				<Texture name="$parentHighlight" file="Interface\QuestFrame\UI-QuestTitleHighlight" parentKey="highlight" setAllPoints="true" forceAlpha="true" alphaMode="ADD" hidden="true"/>
+				<Texture name="$parentHighlight" file="Interface\QuestFrame\UI-QuestTitleHighlight" parentKey="highlight" setAllPoints="true" ignoreParentAlpha="true" alphaMode="ADD" hidden="true"/>
 			</Layer>
 		</Layers>
 		<Attributes>
@@ -35,16 +35,13 @@
 			<OnLeave function="InvenRaidFrames3Member_OnLeave"/>
 			<OnDragStart function="InvenRaidFrames3Member_OnDragStart"/>
 			<OnDragStop function="InvenRaidFrames3Member_OnDragStop"/>
-			<OnMouseDown>
-				InvenRaidFrames3Member_OnDragStop()
-			</OnMouseDown>
 		</Scripts>
 	</Button>
 	<Button name="InvenRaidFrames3PetTemplate" inherits="SecureUnitButtonTemplate,InvenRaidFrames3BaseTemplate" useParentLevel="true" hidden="true" virtual="true">
 		<Size x="0" y="0.1"/>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture name="$parentBackground" parentKey="background" setAllPoints="true" forceAlpha="true"/>
+				<Texture name="$parentBackground" parentKey="background" setAllPoints="true" ignoreParentAlpha="true"/>
 			</Layer>
 			<Layer level="OVERLAY" textureSubLevel="3">
 				<FontString name="$parentName" parentKey="name" inherits="GameFontHighlightSmall" maxLines="1"/>
@@ -144,6 +141,11 @@
 				</Texture>
 			</Layer>
 			<Layer level="OVERLAY" textureSubLevel="3">
+				<FontString inherits="GameFontHighlight" parentKey="timer" maxLines="1">
+					<Anchors>
+						<Anchor point="CENTER"/>
+					</Anchors>
+				</FontString>
 				<FontString inherits="NumberFontNormalSmall" parentKey="count" maxLines="1">
 					<Anchors>
 						<Anchor point="CENTER"/>
@@ -180,7 +182,7 @@
 				</Texture>
 			</Layer>
 			<Layer level="OVERLAY" textureSubLevel="3">
-				<FontString inherits="NumberFontNormalSmall" parentKey="timer" maxLines="1">
+				<FontString inherits="NumberFontNormalSmall" parentKey="timer" maxLines="1"  ignoreParentScale="true" >
 					<Anchors>
 						<Anchor point="TOPLEFT" relativeTo="$parentIcon" relativePoint="TOPLEFT">
 							<Offset>
@@ -189,7 +191,7 @@
 						</Anchor>
 					</Anchors>
 				</FontString>
-				<FontString inherits="NumberFontNormalSmall" parentKey="count" maxLines="1">
+				<FontString inherits="NumberFontNormalSmall" parentKey="count" maxLines="1" ignoreParentScale="true" >
 					<Anchors>
 						<Anchor point="BOTTOMRIGHT" relativeTo="$parentIcon" relativePoint="BOTTOMRIGHT">
 							<Offset>
@@ -211,13 +213,12 @@
 		</Attributes>
 		<Layers>
 			<Layer level="BACKGROUND">
-				<Texture name="$parentBackground" parentKey="background" setAllPoints="true" forceAlpha="true"/>
+				<Texture name="$parentBackground" parentKey="background" setAllPoints="true" ignoreParentAlpha="true"/>
 			</Layer>
 
 			<Layer level="OVERLAY" textureSubLevel="3">
 				<FontString name="$parentName" parentKey="name" inherits="GameFontHighlightSmall" maxLines="2" ignoreParentAlpha="true"/>
 				<FontString name="$parentLostText" parentKey="losttext" inherits="GameFontHighlightSmall" maxLines="1"/>
-
 				<Texture name="$parentRoleIcon" hidden="true" parentKey="roleIcon"/>
 				<Texture name="$parentLeaderIcon" hidden="true" parentKey="leaderIcon"><Size x="0.001" y="0.001"/></Texture>
 				<Texture name="$parentLooterIcon" hidden="true" parentKey="looterIcon"><Size x="0.001" y="0.001"/></Texture>
@@ -259,10 +260,43 @@
 				<Texture name="$parentOverAbsorbGlow" parentKey="overAbsorbGlow"/>
 			</Layer>
 			<Layer level="OVERLAY" textureSubLevel="4">
-				<Texture name="$parentReadyCheckIcon" parentKey="readyCheckIcon" forceAlpha="true"/>
+				<Texture name="$parentReadyCheckIcon" parentKey="readyCheckIcon" ignoreParentAlpha="true"/>
 			</Layer>
+
 		</Layers>
 		<Frames>
+
+
+			<StatusBar name="$parentCastingBar" parentKey="castingBar">
+				<Layers>
+					<Layer level="BACKGROUND" textureSubLevel="2">
+						<Texture name="$parentBackground" parentKey="background" setAllPoints="true"/>
+					</Layer>
+
+
+					<Layer level="OVERLAY">
+						<Texture name="$parentIcon" parentKey="icon">
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" relativeTo="$parentBackground" x="0" y="0"/>
+
+							</Anchors>
+
+						</Texture>
+					</Layer>
+				
+					<Layer level="OVERLAY">
+						<FontString inherits="GameFontHighlightSmall" parentKey="castname" maxLines="1">
+							<Anchors>
+								<Anchor point="BOTTOMLEFT" relativeTo="$parentIcon" relativePoint="BOTTOMRIGHT" x="5" y="0"/>
+							</Anchors>
+						</FontString>
+					</Layer>
+
+				</Layers>
+			</StatusBar>
+			
+
+
 			<StatusBar name="$parentHealthBar" parentKey="healthBar" useParentLevel="true">
 				<Layers>
 					<Layer level="BACKGROUND" textureSubLevel="2">
@@ -270,38 +304,52 @@
 					</Layer>
 				</Layers>
 			</StatusBar>
-			<StatusBar name="$parentPowerBar" parentKey="powerBar" useParentLevel="true">
+
+
+			<StatusBar name="$parentPowerBar" parentKey="powerBar" useParentLevel="true" >
 				<Layers>
-					<Layer level="BACKGROUND" textureSubLevel="2">
+					<Layer level="BACKGROUND" textureSubLevel="6">
 						<Texture name="$parentBackground" parentKey="background" setAllPoints="true"/>
 					</Layer>
 				</Layers>
 			</StatusBar>
+
+
+
+
 			<StatusBar name="$parentMyHealPredictionBar" parentKey="myHealPredictionBar" useParentLevel="true"/>
 			<StatusBar name="$parentMyHoTPredictionBar" parentKey="myHoTPredictionBar" useParentLevel="true"/>
 			<StatusBar name="$parentOtherHealPredictionBar" parentKey="otherHealPredictionBar" useParentLevel="true"/>
 			<StatusBar name="$parentOtherHoTPredictionBar" parentKey="otherHoTPredictionBar" useParentLevel="true"/>
 			<StatusBar name="$parentAbsorbPredictionBar" parentKey="absorbPredictionBar" useParentLevel="true"/>
-			<Frame name="$parentDebuffIcon1" parentKey="debuffIcon1" inherits="InvenRaidFrames3DebuffIconTemplate"/>
-			<Frame name="$parentDebuffIcon2" parentKey="debuffIcon2" inherits="InvenRaidFrames3DebuffIconTemplate"/>
-			<Frame name="$parentDebuffIcon3" parentKey="debuffIcon3" inherits="InvenRaidFrames3DebuffIconTemplate"/>
-			<Frame name="$parentDebuffIcon4" parentKey="debuffIcon4" inherits="InvenRaidFrames3DebuffIconTemplate"/>
-			<Frame name="$parentDebuffIcon5" parentKey="debuffIcon5" inherits="InvenRaidFrames3DebuffIconTemplate"/>
-			<Frame name="$parentSpellTimer1" parentKey="spellTimer1" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer2" parentKey="spellTimer2" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer3" parentKey="spellTimer3" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer4" parentKey="spellTimer4" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer5" parentKey="spellTimer5" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer6" parentKey="spellTimer6" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer7" parentKey="spellTimer7" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer8" parentKey="spellTimer8" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer9" parentKey="spellTimer9" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer10" parentKey="spellTimer10" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer11" parentKey="spellTimer11" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer12" parentKey="spellTimer12" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer13" parentKey="spellTimer13" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer14" parentKey="spellTimer14" inherits="InvenRaidFrames3SpellTimerTemplate"/>
-			<Frame name="$parentSpellTimer15" parentKey="spellTimer15" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentDebuffIcon1" parentKey="debuffIcon1" hidden="true" inherits="InvenRaidFrames3DebuffIconTemplate"/>
+			<Frame name="$parentDebuffIcon2" parentKey="debuffIcon2" hidden="true" inherits="InvenRaidFrames3DebuffIconTemplate"/>
+			<Frame name="$parentDebuffIcon3" parentKey="debuffIcon3" hidden="true" inherits="InvenRaidFrames3DebuffIconTemplate"/>
+			<Frame name="$parentDebuffIcon4" parentKey="debuffIcon4" hidden="true" inherits="InvenRaidFrames3DebuffIconTemplate"/>
+			<Frame name="$parentDebuffIcon5" parentKey="debuffIcon5" hidden="true" inherits="InvenRaidFrames3DebuffIconTemplate"/>
+			<Frame name="$parentDebuffIcon6" parentKey="debuffIcon6" hidden="true" inherits="InvenRaidFrames3DebuffIconTemplate"/>
+			<Frame name="$parentDebuffIcon7" parentKey="debuffIcon7" hidden="true" inherits="InvenRaidFrames3DebuffIconTemplate"/>
+			<Frame name="$parentDebuffIcon8" parentKey="debuffIcon8" hidden="true" inherits="InvenRaidFrames3DebuffIconTemplate"/>
+			<Frame name="$parentDebuffIcon9" parentKey="debuffIcon9" hidden="true" inherits="InvenRaidFrames3DebuffIconTemplate"/>
+			<Frame name="$parentDebuffIcon10" parentKey="debuffIcon10" hidden="true" inherits="InvenRaidFrames3DebuffIconTemplate"/>
+			<Frame name="$parentSpellTimer1" parentKey="spellTimer1" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer2" parentKey="spellTimer2" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer3" parentKey="spellTimer3" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer4" parentKey="spellTimer4" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer5" parentKey="spellTimer5" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer6" parentKey="spellTimer6" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer7" parentKey="spellTimer7" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer8" parentKey="spellTimer8" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer9" parentKey="spellTimer9" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer10" parentKey="spellTimer10" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer11" parentKey="spellTimer11" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer12" parentKey="spellTimer12" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer13" parentKey="spellTimer13" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer14" parentKey="spellTimer14" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer15" parentKey="spellTimer15" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer16" parentKey="spellTimer16" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer17" parentKey="spellTimer17" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
+			<Frame name="$parentSpellTimer18" parentKey="spellTimer18" hidden="true" inherits="InvenRaidFrames3SpellTimerTemplate"/>
 
 			<Frame name="$parentBossAura" parentKey="bossAura" hidden="true" enableMouse="false">
 				<Size x="0.001" y="0.001"/>
@@ -337,7 +385,7 @@
 					<Frame parentKey="timerParent" setAllPoints="true">
 						<Layers>
 							<Layer level="OVERLAY">
-								<FontString inherits="GameFontHighlight" parentKey="text" forceAlpha="true" maxLines="1">
+								<FontString inherits="GameFontHighlight" parentKey="text" ignoreParentAlpha="true" maxLines="1">
 									<Anchors>
 										<Anchor point="TOPLEFT" x="0" y="0"/>
 									</Anchors>
@@ -365,7 +413,10 @@
 					<OnHide function="InvenRaidFrames3Member_CenterStatusIconOnHide"/>
 				</Scripts>
 			</Frame>
-			<StatusBar name="$parentCastingBar" parentKey="castingBar" hidden="true"/>
+
+
+
+			
 			<StatusBar name="$parentPowerBarAlt" parentKey="powerBarAlt" hidden="true"/>
 			<StatusBar name="$parentResurrectionBar" parentKey="resurrectionBar" useParentLevel="true" hidden="true" setAllPoints="true"/>
 			<Frame name="$parentDropDown" inherits="UIDropDownMenuTemplate" parentKey="dropDown" hidden="true">
@@ -414,7 +465,7 @@
 			<Attribute name="_childupdate" type="string" value="self:ChildUpdate(scriptid, message)"/>
 		</Attributes>
 		<Frames>
-			<Frame name="$parentPartyTag" enableMouse="true" hidden="true" parentKey="partyTag" useParentLevel="true">
+			<Frame name="$parentPartyTag" enableMouse="true" hidden="true" parentKey="partyTag" useParentLevel="true" ignoreParentAlpha="true">
 				<Size x="0" y="12"/>
 				<Layers>
 					<Layer level="BORDER">
@@ -429,6 +480,8 @@
 					</Layer>
 				</Layers>
 				<Scripts>
+					<OnEnter function="InvenRaidFrames3MemberTag_OnEnter"/>
+					<OnLeave function="InvenRaidFrames3MemberTag_OnLeave"/>
 					<OnDragStart function="InvenRaidFrames3Member_OnDragStart"/>
 					<OnDragStop function="InvenRaidFrames3Member_OnDragStop"/>
 					<OnHide function="InvenRaidFrames3Member_OnDragStop"/>

@@ -28,6 +28,8 @@ local SLASH_COMMANDS = {
   ["npd"] = Auctionator.SlashCmd.NoPriceDB,
   ["h"] = Auctionator.SlashCmd.Help,
   ["help"] = Auctionator.SlashCmd.Help,
+  ["groups"] = Auctionator.SlashCmd.Groups,
+  ["g"] = Auctionator.SlashCmd.Groups,
 }
 
 function Auctionator.SlashCmd.Handler(input)
@@ -42,7 +44,7 @@ function Auctionator.SlashCmd.Handler(input)
       Auctionator.Utilities.Message("Unrecognized command '" .. command[1] .. "'")
       Auctionator.SlashCmd.Help()
     else
-      handler(command[2], command[3])
+      handler(unpack(Auctionator.Utilities.Slice(command, 2, #command-1)))
     end
   end
 end

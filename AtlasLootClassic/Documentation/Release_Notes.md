@@ -2,6 +2,58 @@
 
 This mod is distributed under Version 2 of the GPL.  A copy of the GPL is included in this zip file with links to non-english translations.
 
+## v3.1.4 (Oct. 10, 2023)
+
+- Add Defiler Scourgestone Vendor
+- Update Dalaran Vendor
+- #397, #388 Update to use new Mount API
+- #396 Added "Maiden of Grief" Missing items in Titan Rune Beta - Halls of Stone
+- #395 Fixed "King Dred" Wrong loot in Titan Rune Beta - Drak'Tharon Keep
+- #394 Fixed "The Prophet Tharon'ja" Wrong loot in Titan Rune Beta - Drak'Tharon Keep
+- #393 Added Missing Leatherworking Fur Linings
+- #391 Added Enchanting Cloak Resistances (Arcane, Fire, Frost, Nature, Shadow), Removed Duplicates
+- #381 Added "Six Shared Loot Bosses" Missing items in Titan Rune Beta - Violet Hold
+
+## v3.1.3 (Jul. 11, 2023)
+
+- update .toc version
+- fix lua errors
+- update translations
+- Add missing items
+
+## v3.1.2 (Apr. 05, 2023)
+
+- fix lua errors
+- update translations
+- Add missing PvP items
+- Update ClassFilter
+- Update loottables
+
+## v3.1.1 (Feb. 04, 2023)
+
+- fix lua errors
+- update transaltions
+- #324 Fixes: Favorite list Import/Export issue, Empty item notes removing
+- #312 Fixes error when trying to retrieve favourite list name from a global list
+- #310 Fix missing selection highlight for Select Button
+- #308 (Updated for v3.1.0) Add Day of the Dead and Pilgrim's Bounty, Coren Wrath
+- #306 add more titan rune loot
+- #305 Add a few missing items
+- #304 Update layout for titan rune items
+
+## v3.1.0 (Jan. 18, 2023)
+
+- add fixes for new patch from cwilson21
+- update korean transaltions #272
+
+## v3.0.7 (Oct, 13, 2022)
+
+- add mounts into raid AC tables
+- add Missing Venomhide Ravasaur and Sea Turtle in Wrath mounts #262
+- add missing spellthreads #268
+- add missing green, red, meta, and Perfect gems #265
+- fix Naxx now shows wrath version not classic
+
 ## v3.0.6 (Oct, 08, 2022)
 
 - fix classic Naxxramas opens when in Wotlk #260

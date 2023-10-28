@@ -38,6 +38,14 @@ local BUY_AUCTIONS_TABLE_LAYOUT = {
     cellTemplate = "AuctionatorStringCellTemplate",
     cellParameters = { "isOwnedText" },
   },
+  {
+    headerTemplate = "AuctionatorStringColumnHeaderTemplate",
+    headerParameters = { "timeLeft" },
+    headerText = AUCTIONATOR_L_TIME_LEFT,
+    cellTemplate = "AuctionatorStringCellTemplate",
+    cellParameters = { "timeLeftPretty" },
+    defaultHide = true,
+  },
 }
 
 local BUY_EVENTS = {
@@ -55,6 +63,11 @@ function AuctionatorBuyAuctionsDataProviderMixin:OnLoad()
   self:SetUpEvents()
   self.gotAllResults = true
   self.requestAllResults = true
+  self.ignoreItemLevel = false
+end
+
+function AuctionatorBuyAuctionsDataProviderMixin:SetIgnoreItemLevel(state)
+  self.ignoreItemLevel = state
 end
 
 function AuctionatorBuyAuctionsDataProviderMixin:SetUpEvents()
@@ -123,6 +136,9 @@ function AuctionatorBuyAuctionsDataProviderMixin:ReceiveEvent(eventName, eventDa
 
   elseif eventName == Auctionator.AH.Events.ScanAborted then
     Auctionator.EventBus:Unregister(self, BUY_EVENTS)
+    if self.currentResults then
+      self:SetSelectedIndex(1)
+    end
     self.onSearchEnded()
   elseif eventName == Auctionator.Buying.Events.AuctionFocussed and self:IsShown() then
     for _, entry in ipairs(self.results) do
@@ -159,11 +175,17 @@ function AuctionatorBuyAuctionsDataProviderMixin:EndAnyQuery()
 end
 
 function AuctionatorBuyAuctionsDataProviderMixin:ImportAdditionalResults(results)
+  local itemIDWanted
+  if self.ignoreItemLevel then
+    itemIDWanted = GetItemInfoInstant(self.searchKey)
+  end
+
   local waiting = #results
   for _, entry in ipairs(results) do
     local itemID = entry.info[Auctionator.Constants.AuctionItemInfo.ItemID]
     local itemString = Auctionator.Search.GetCleanItemLink(entry.itemLink)
-    if self.searchKey == itemString then
+    if self.searchKey == itemString or
+      (itemIDWanted and itemID == itemIDWanted) then
       table.insert(self.allAuctions, entry)
     end
   end
@@ -213,6 +235,8 @@ function AuctionatorBuyAuctionsDataProviderMixin:PopulateAuctions()
       notReady = true,
       query = auction.query,
       page = auction.page,
+      timeLeft = auction.timeLeft,
+      timeLeftPretty = Auctionator.Utilities.FormatTimeLeftBand(auction.timeLeft),
     }
     if newEntry.unitPrice == 0 then
       newEntry.unitPrice = nil
@@ -355,6 +379,7 @@ local COMPARATORS = {
   numStacks = Auctionator.Utilities.NumberComparator,
   otherSellers = Auctionator.Utilities.StringComparator,
   isOwnedText = Auctionator.Utilities.StringComparator,
+  timeLeft = Auctionator.Utilities.NumberComparator,
 }
 
 function AuctionatorBuyAuctionsDataProviderMixin:Sort(fieldName, sortDirection)

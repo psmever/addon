@@ -3,9 +3,10 @@ SavedClassic = LibStub("AceAddon-3.0"):NewAddon(addonName, "AceEvent-3.0")
 
 SavedClassic.name = addonName
 --SavedClassic.version = GetAddOnMetadata(addonName, "Version")
-SavedClassic.version = "3.0.6"
+SavedClassic.version = "3.2.7"
 
 local L = LibStub("AceLocale-3.0"):GetLocale(addonName, true)
+local LibGearScore = LibStub("LibGearScore.1000", true)
 
 local MSG_PREFIX = "|cff00ff00■ |cffffaa00Saved!|r "
 local MSG_SUFFIX = " |cff00ff00■|r"
@@ -19,6 +20,7 @@ local dbDefault = {
         [player] = {
             frameX = 100,   frameY = 25,
             showInfoPer = "realm",
+            showTotalGold = true,
             hideLevelUnder = 1,
 
             default = true,
@@ -30,13 +32,15 @@ local dbDefault = {
             dqComplete = -1, dqMax = -1, dqReset = -1,
 
             lastUpdate = -1,
+            gearScore = -1,
+            gearAvgLevel = -1,
         }
     }
 }
 
 SavedClassic.ts = { -- Tradeskills of long cooldowns
     -- Alchemy
-    [53781] = { altName = L["Transmute"], },    -- Transmute
+    [53781] = { icon = "237220", },   -- Transmute with Cardinal Ruby icon
     [60893] = { icon = "136240", },   -- Northrend Alchemy Research
     -- Mining
     [55208] = { icon = "237046", },   -- Smelt Titansteel
@@ -58,30 +62,33 @@ SavedClassic.currencies = {
     [1]   = { altName = L["gold"    ], icon = "|TInterface/MoneyFrame/UI-GoldIcon:14:14:2:0|t"},   -- Gold
     [2]   = { altName = L["silver"  ], icon = "|TInterface/MoneyFrame/UI-SilverIcon:14:14:2:0|t" },   -- Silver
     [3]   = { altName = L["copper"  ], icon = "|TInterface/MoneyFrame/UI-CopperIcon:14:14:2:0|t" },   -- Copper
-    [1901]= { altName = L["honor"   ] },   -- Honor point
-    [1900]= { altName = L["arena"   ] },   -- Arena point
-    [61]  = { altName = L["jewel"   ] }, -- Dalaran Jewelcrafter's Token Wrath of the Lich King  3.0.2
-    [81]  = { altName = L["cook"    ] }, -- Epicurean's Award    Miscellaneous   3.1.0
-    [101] = { altName = L["heroism" ] }, -- Emblem of Heroism    Dungeon and Raid    3.1.0
-    [102] = { altName = L["valor"   ] }, -- Emblem of Valor  Dungeon and Raid    3.1.0
-    [221] = { altName = L["conquest"] }, -- Emblem of Conquest   Dungeon and Raid    3.1.0
-    [301] = { altName = L["triumph" ] }, -- Emblem of Triumph    Dungeon and Raid    3.3.5
-    [341] = { altName = L["frost"   ] }, -- Emblem of Frost  Dungeon and Raid    3.3.5
-    [241] = { altName = L["champion"] }, -- Champion's Seal  Wrath of the Lich King  3.1.0
-    [121] = { altName = L["AV"      ] }, -- Alterac Valley Mark of Honor Player vs. Player   3.1.0
-    [122] = { altName = L["AB"      ] }, -- Arathi Basin Mark of Honor   Player vs. Player   3.1.0
-    [123] = { altName = L["EotS"    ] }, -- Eye of the Storm Mark of Honor   Player vs. Player   3.1.0
-    [124] = { altName = L["SotA"    ] }, -- Strand of the Ancients Mark of Honor Player vs. Player   3.1.0
-    [125] = { altName = L["WSG"     ] }, -- Warsong Gulch Mark of Honor  Player vs. Player   3.1.0
-    [126] = { altName = L["WG"      ] }, -- Wintergrasp Mark of Honor    Player vs. Player   3.1.0
-    [321] = { altName = L["IoC"     ] }, -- Isle of Conquest Mark of Honor   Player vs. Player   3.3.5
-    [161] = { altName = L["shard"   ] }, -- Stone Keeper's Shard Player vs. Player   3.1.0
-    [201] = { altName = L["venture" ] }, -- Venture Coin Player vs. Player   3.1.0
-    [42]  = { altName = L["justice" ] }, -- Badge of Justice Miscellaneous   3.0.2
+    [1901]= { altName = L["honor"   ] }, -- Honor point
+    [1900]= { altName = L["arena"   ] }, -- Arena point
+    [61]  = { altName = L["jewel"   ] }, -- 3.0.2 Dalaran Jewelcrafter's Token
+    [81]  = { altName = L["cook"    ] }, -- 3.1.0 Epicurean's Award
+    [101] = { altName = L["heroism" ] }, -- 3.1.0 Emblem of Heroism
+    [102] = { altName = L["valor"   ] }, -- 3.1.0 Emblem of Valor
+    [221] = { altName = L["conquest"] }, -- 3.1.0 Emblem of Conquest
+    [301] = { altName = L["triumph" ] }, -- 3.3.5 Emblem of Triumph
+    [341] = { altName = L["frost"   ] }, -- 3.3.5 Emblem of Frost
+    [241] = { altName = L["champion"] }, -- 3.1.0 Champion's Seal
+    [121] = { altName = L["AV"      ] }, -- 3.1.0 Alterac Valley Mark of Honor
+    [122] = { altName = L["AB"      ] }, -- 3.1.0 Arathi Basin Mark of Honor
+    [123] = { altName = L["EotS"    ] }, -- 3.1.0 Eye of the Storm Mark of Honor
+    [124] = { altName = L["SotA"    ] }, -- 3.1.0 Strand of the Ancients Mark of Honor
+    [125] = { altName = L["WSG"     ] }, -- 3.1.0 Warsong Gulch Mark of Honor
+    [126] = { altName = L["WG"      ] }, -- 3.1.0 Wintergrasp Mark of Honor
+    [321] = { altName = L["IoC"     ] }, -- 3.3.5 Isle of Conquest Mark of Honor
+    [161] = { altName = L["shard"   ] }, -- 3.1.0 Stone Keeper's Shard
+    [201] = { altName = L["venture" ] }, -- 3.1.0 Venture Coin
+    [42]  = { altName = L["justice" ] }, -- 3.0.2 Badge of Justice
+    [2589]= { altName = L["sidereal"] }, -- 3.4.2 Sidereal Essence
+    [2711]= { altName = L["defilers"] }, -- 3.4.3 Defiler's Scourgestone
     order = {
-        1,2,3,1901,1900,                  -- Money, Honor, Arena
+        1,2,3,1901,1900,            -- Money, Honor, Arena
         61,81,                      -- Tradeskills
         101,102,221,301,341,241,    -- Emblems
+        2589,2711,                  -- Titan
         121,122,123,124,125,126,321, -- Mark of Honors
         161,201,42                  -- PVP, etc
     }
@@ -112,19 +119,52 @@ SavedClassic.abbr.heroic = {
     [C_Map.GetAreaInfo(4415)] = L[ "VH"],
     [C_Map.GetAreaInfo(206 )] = L[ "UK"],
     [C_Map.GetAreaInfo(1196)] = L[ "UP"],
-    [C_Map.GetAreaInfo(4723)] = L["ToC"],
+    [C_Map.GetAreaInfo(4723)] = L["ToCh"],
     [C_Map.GetAreaInfo(4820)] = L["HoR"],
     [C_Map.GetAreaInfo(4813)] = L["PoS"],
     [C_Map.GetAreaInfo(4809)] = L["FoS"],
+}
+SavedClassic.abbr.raid = {
+    -- WotLK Raid
+    [C_Map.GetAreaInfo(4812)] = { order = -309, name = L["ICC"]  },
+    [C_Map.GetAreaInfo(4722)] = { order = -308, name = L["ToC"]  },
+    [C_Map.GetAreaInfo(4273)] = { order = -307, name = L["ULD"]  },
+    [C_Map.GetAreaInfo(3456)] = { order = -306, name = L["Naxx"] },
+    [C_Map.GetAreaInfo(4987)] = { order = -305, name = L["RS"]   },
+    [C_Map.GetAreaInfo(2159)] = { order = -304, name = L["Ony"]  },
+    [C_Map.GetAreaInfo(4500)] = { order = -303, name = L["EoE"]  },
+    [C_Map.GetAreaInfo(4493)] = { order = -302, name = L["OS"]   },
+    [C_Map.GetAreaInfo(4603)] = { order = -301, name = L["VoA"]  },
+    -- TBC Raid
+    [C_Map.GetAreaInfo(4075)] = { order = -209, name = L["SP"]  },
+    [C_Map.GetAreaInfo(3805)] = { order = -208, name = L["ZA"]  },
+    [C_Map.GetAreaInfo(3959)] = { order = -207, name = L["BT"]  },
+    [C_Map.GetAreaInfo(3606)] = { order = -206, name = L["MH"]  },
+    [C_Map.GetAreaInfo(3607)] = { order = -205, name = L["SC"]  },
+    [C_Map.GetAreaInfo(3845)] = { order = -204, name = L["TK"]  },
+    [C_Map.GetAreaInfo(3457)] = { order = -203, name = L["KZ"]  },
+    [C_Map.GetAreaInfo(3923)] = { order = -202, name = L["GL"]  },
+    [C_Map.GetAreaInfo(3836)] = { order = -201, name = L["ML"]  },
+    -- Vanilla Raid
+    [C_Map.GetAreaInfo(3428)] = { order = -105, name = L["AQ"]  },
+    [C_Map.GetAreaInfo(3429)] = { order = -104, name = L["RA"]  },
+    [C_Map.GetAreaInfo(1977)] = { order = -103, name = L["ZG"]  },
+    [C_Map.GetAreaInfo(2677)] = { order = -102, name = L["BW"]  },
+    [C_Map.GetAreaInfo(2717)] = { order = -101, name = L["MC"]  },
 }
 
 local _TranslationTable = {
     ["color"    ] = function(_, option, color) return (color and color ~= "") and "|cff"..color or "|r" end,
     ["item"     ] = function(db, option, color)
-                        local id = SavedClassic:StripLink(option)
-                        local result = "|T"..GetItemIcon(id)..":14:14|t"..(db.itemCount[id] or "-")
-                        if color and color ~= "" then result = "|cff"..color..result.."|r" end
-                        return result
+                        local _, itemLink = GetItemInfo(option)
+                        if itemLink then
+                            local id = SavedClassic:StripLink(itemLink)
+                            local result = "|T"..GetItemIcon(id)..":14:14|t"..(db.itemCount[id] or "-")
+                            if color and color ~= "" then result = "|cff"..color..result.."|r" end
+                            return result
+                        else
+                            return ""
+                        end
                     end,
     ["currency" ] = function(db, option, color)
                         local id = tonumber(option)
@@ -153,6 +193,8 @@ local _TranslationTable = {
     ["dqCom"    ] = "dqComplete",
     ["dqMax"    ] = "dqMax",
     ["dqReset"  ] = "dqReset",
+    ["gearScore"] = "gearScore",
+    ["ilvl"     ] = "gearAvgLevel",
     ["instName" ] = "name",
     ["instID"   ] = "id",
     ["difficulty"]= "difficultyName",
@@ -182,6 +224,8 @@ local _TranslationTable = {
         [L["dqCom"     ] ] = "dqCom",
         [L["dqMax"     ] ] = "dqMax",
         [L["dqReset"   ] ] = "dqReset",
+        [L["gs"        ] ] = "gearScore",
+        [L["ilvl"      ] ] = "gearAvgLevel",
         [L["instName"  ] ] = "instName",
         [L["instID"    ] ] = "instID",
         [L["difficulty"] ] = "difficulty",
@@ -233,6 +277,7 @@ function SavedClassic:OnInitialize()
     self:RegisterEvent("QUEST_TURNED_IN")
 
     self:RegisterEvent("CHAT_MSG_COMBAT_HONOR_GAIN", "CurrencyUpdate")
+    LibGearScore.RegisterCallback(self, "LibGearScore_Update")
 
     self.totalMoney = 0 -- Total money except current character
     for character, saved in pairs(self.db.realm) do
@@ -244,6 +289,7 @@ function SavedClassic:OnInitialize()
     self:ClearItemCount()
     self:QUEST_TURNED_IN()
     self:BAG_UPDATE_DELAYED()
+    LibGearScore:PLAYER_ENTERING_WORLD()
 end
 
 function SavedClassic:OnEnable()
@@ -255,13 +301,17 @@ function SavedClassic:OnDisable()
 end
 
 function SavedClassic:SetOrder()
-    -- db for ordered list
+    local db = self.db.realm[player]
     self.order = { }
     for k, v in pairs(self.db.realm) do
         table.insert(self.order, { name = v.name, level = v.level })
     end
     table.sort(self.order,
         function(a,b)
+            if db.currentFirst then
+                if a.name == player then return true end
+                if b.name == player then return false end
+            end
             local al = a.level or 0
             local bl = b.level or 0
             if al == bl then
@@ -286,21 +336,15 @@ function SavedClassic:InitPlayerDB()
     playerdb.info2 = true
     playerdb.info2_1 = ""
 
+    local soulshards = (class == "WARLOCK") and "["..L["item"]..":6265/cc66cc] " or ""
+
     if UnitLevel("player") < GetMaxPlayerLevel() then
-        if class == "WARLOCK" then
-            playerdb.info1_1 = "\n["..L["color"].."/00ff00]■["..L["color"].."] [["..L["level"].."/ffffff]:["..L["name"].."]] ["..L["item"]..":6265/cc66cc] ["..L["color"].."/ffffff](["..L["zone"].."]: ["..L["subzone"].."])["..L["color"].."]"
-        else
-            playerdb.info1_1 = "\n["..L["color"].."/00ff00]■["..L["color"].."] [["..L["level"].."/ffffff]:["..L["name"].."]] ["..L["color"].."/ffffff](["..L["zone"].."]: ["..L["subzone"].."])["..L["color"].."]"
-        end
+        playerdb.info1_1 = "\n["..L["color"].."/00ff00]■["..L["color"].."] [["..L["level"].."/ffffff]:["..L["name"].."]] "..soulshards.."["..L["color"].."/ffffff](["..L["zone"].."]: ["..L["subzone"].."])["..L["color"].."]"
         playerdb.info2_1 = "   ["..L["color"].."/cc66ff]["..L["expCur"].."]/["..L["expMax"].."] (["..L["exp%"].."]%)["..L["color"].."] ["..L["color"].."/66ccff]+["..L["expRest"].."] (["..L["expRest%"].."]%)["..L["color"].."]"
-        playerdb.info2_2 = "["..L["color"].."/ffffff]["..L["currency"]..":"..L["justice"].."]["..L["currency"]..":"..L["honor"].."]["..L["color"].."]"
+        playerdb.info2_2 = "["..L["color"].."/ffffff]["..L["currency"]..":"..L["honor"].."]["..L["color"].."]"
     else
-        if class == "WARLOCK" then
-            playerdb.info1_1 = "\n["..L["color"].."/00ff00]■["..L["color"].."] [["..L["name"].."]] ["..L["item"]..":6265/cc66cc] ["..L["color"].."/ffffff](["..L["zone"].."]: ["..L["subzone"].."])["..L["color"].."]"
-        else
-            playerdb.info1_1 = "\n["..L["color"].."/00ff00]■["..L["color"].."] [["..L["name"].."]] ["..L["color"].."/ffffff](["..L["zone"].."]: ["..L["subzone"].."])["..L["color"].."]"
-        end
-        playerdb.info2_1 = "   ["..L["color"].."/ffffff]["..L["currency"]..":"..L["valor"].."] ["..L["currency"]..":"..L["heroism"].."] [".. L["currency"]..":"..L["arena"].."] [".. L["currency"]..":"..L["honor"].."]["..L["color"].."]"
+        playerdb.info1_1 = "\n["..L["color"].."/00ff00]■["..L["color"].."] [["..L["name"].."]]["..L["gs"].."] "..soulshards.."["..L["color"].."/ffffff](["..L["zone"].."]: ["..L["subzone"].."])["..L["color"].."]"
+        playerdb.info2_1 = "   ["..L["color"].."/ffffff]["..L["currency"]..":"..L["frost"].."] ["..L["currency"]..":"..L["triumph"].."] ["..L["currency"]..":"..L["conquest"].."] ["..L["currency"]..":"..L["valor"].."] ["..L["currency"]..":"..L["heroism"].."] ["..L["currency"]..":"..L["defilers"].."] ["..L["currency"]..":"..L["sidereal"].."] [".. L["currency"]..":"..L["arena"].."] [".. L["currency"]..":"..L["honor"].."]["..L["color"].."]"
         playerdb.info2_2 = ""
     end
 
@@ -380,8 +424,15 @@ function SavedClassic:SaveInfo()
         end
     end
 
-    table.sort(raids, function(a,b) return ( a.name < b.name ) or ( a.name == b.name and a.difficultyName < b.difficultyName ) end)
-    table.sort(heroics, function(a,b) return ( a.name < b.name ) or ( a.name == b.name and a.difficultyName < b.difficultyName ) end)
+    table.sort(raids, function(a,b)
+        local aa, bb = self.abbr.raid[a.name], self.abbr.raid[b.name]
+        if aa and aa.order and bb and bb.order then
+            return ( aa.order < bb.order ) or ( aa.order == bb.order and a.difficultyName < b.difficultyName )
+        else
+            return ( a.name < b.name ) or ( a.name == b.name and a.difficultyName < b.difficultyName )
+        end
+    end)
+    table.sort(heroics, function(a,b) return ( a.name < b.name ) or ( a.name == b.name and a.difficultyName > b.difficultyName ) end)
 
     db.raids = raids
     db.heroics = heroics
@@ -457,11 +508,14 @@ end
 function SavedClassic:BAG_UPDATE_DELAYED()
     local db = self.db.realm[player]
     local infoStr = db.info1_1..db.info1_2..db.info2_1..db.info2_2
-    local itemList = string.gmatch(infoStr, "%%[Iia]%{[^}]+%}")
+    local itemList = string.gmatch(infoStr, "%["..L["item"]..":([^]]+)%]")
 
-    for itemLink in itemList do
-        local itemID = self:StripLink(itemLink)
-        db.itemCount[itemID] = GetItemCount(itemID, true) or 0
+    for itemLink in itemList do -- item link or ID or name
+        local _, itemLink = GetItemInfo(itemLink)
+        if itemLink then
+            local itemID = self:StripLink(itemLink)
+            db.itemCount[itemID] = GetItemCount(itemLink, true) or 0
+        end
     end
     for id, _ in pairs(self.items) do
         db.itemCount[id] = GetItemCount(id, true) or 0
@@ -469,7 +523,7 @@ function SavedClassic:BAG_UPDATE_DELAYED()
 end
 
 function SavedClassic:StripLink(link)
-    return tonumber(string.match(link, "(%d+):") or string.match(link, "(%d+)"))
+    return tonumber(string.match(link, "(%d+):") or string.match(link, "(%d+)")) or ""
 end
 
 function SavedClassic:PLAYER_MONEY()
@@ -498,14 +552,27 @@ function SavedClassic:CurrencyUpdate()
 --  local _, db,justice, _, earnedThisWeek, weeklyMax, totalMax = GetCurrencyInfo(395)
 end
 
+function SavedClassic:LibGearScore_Update(event, guid, gearScore)
+    local db = self.db.realm[player]
+    local playerGUID = UnitGUID("player")
+    if guid == playerGUID and gearScore then
+        local color = gearScore.Color or CreateColor(0.62, 0.62, 0.62)
+        db.gearScore = color:WrapTextInColorCode(gearScore.GearScore or 0)
+        db.gearAvgLevel = gearScore.AvgItemLevel or 0
+    end
+end
+
 function SavedClassic:ShowInfoTooltip(tooltip)
     local mode = ""
     local db = self.db.realm[player]
     local realm = ""
     if db.showInfoPer == "realm" then realm = " - " .. GetRealmName() end
 
-    local totalGold = floor((self.totalMoney + db.currencyCount[0]) / 10000)
-    tooltip:AddDoubleLine(MSG_PREFIX .. realm .. MSG_SUFFIX, totalGold.. self.currencies[1].icon)
+    local totalGold = ""
+    if db.showTotalGold then
+        totalGold = floor((self.totalMoney + db.currencyCount[0]) / 10000).. self.currencies[1].icon
+    end
+    tooltip:AddDoubleLine(MSG_PREFIX .. realm .. MSG_SUFFIX, totalGold)
 
     self:SaveZone()
     self:QUEST_TURNED_IN()
@@ -570,16 +637,30 @@ function SavedClassic:ShowInstanceInfo(tooltip, character)
     db.raids = db.raids or {}
     if db.info3 then
         if db.info3oneline then
-            local raidList = {}
+            local lastName = ""
+            local oneline
             for i = 1, #db.raids do
                 local instance = db.raids[i]
-                raidList[instance.name] = raidList[instance.name] or {}
-                table.insert(raidList[instance.name], instance.difficultyName)
+                local remain = SecondsToTime(instance.reset - time())
+                local name = self.abbr.raid[instance.name] and self.abbr.raid[instance.name].name or instance.name
+                if remain and ( remain ~= "" ) then
+                    if name ~= lastName then
+                        if oneline then
+                            oneline = oneline..") "
+                        else
+                            oneline = ""
+                        end
+                        oneline = oneline..name.."("..instance.difficultyName:gsub("[^0-9]*","")
+                    else
+                        oneline = oneline.."/"..instance.difficultyName:gsub("[^0-9]*","")
+                    end
+                    lastName = name
+                end
             end
-            local oneline
-            for k,v in pairs(raidList) do
-                oneline = "   "..k.." ("..v[1]..(v[2] and ", "..v[2] or "")..")"
-                tooltip:AddLine(oneline)
+            if oneline and oneline ~= "" then
+                oneline = oneline .. ")"
+                oneline = oneline:gsub("^ ","") -- trim leading space
+                tooltip:AddLine("   "..oneline)
             end
         else
             for i = 1, #db.raids do
@@ -625,7 +706,7 @@ end
 
 function SavedClassic:TranslateCharacter(line, db)
     -- [keyword] [keyword:option] [keyword/color] [keyword:option/color]
-    return line:gsub("(%[([^]^[^/^:]*):?([^]^[^/]*)/?([^]^[]*)%])", function(...) return self:TranslateCharacterWord(db, ...) end )
+    return line:gsub("%]?|h%[?", "|h"):gsub("(%[([^]^[^/^:]*):?([^]^[^/]*)/?([^]^[]*)%])", function(...) return self:TranslateCharacterWord(db, ...) end )
 end
 
 function SavedClassic:TranslateCharacterWord(db, strBefore, keyword, option, color)
@@ -864,6 +945,11 @@ function SavedClassic:BuildOptions()
                         style = "radio",
                         order = 121
                     },
+                    showTotalGold = {
+                        name = L["Show total gold"],
+                        type = "toggle",
+                        order = 122,
+                    },
                     hideLevelUnder = {
                         name = L["Hide info from level under"],
                         type = "range",
@@ -871,6 +957,15 @@ function SavedClassic:BuildOptions()
                         max = GetMaxPlayerLevel(),
                         step = 1,
                         order = 131
+                    },
+                    currentFirst = {
+                        name = L["Show current chracter first"],
+                        type = "toggle",
+                        set = function(info, value)
+                            db[info[#info]] = value
+                            self:SetOrder()
+                        end,
+                        order = 141
                     },
                 }
             },

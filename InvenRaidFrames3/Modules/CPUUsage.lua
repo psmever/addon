@@ -146,6 +146,7 @@ local function updateTextColor()
 end
 
 local function InitUI()
+
   InitText()
   local x = -5
   AddTextBar("TITLE", "LibAuras ON", "CENTER", "TOP", 0, 0, 0)

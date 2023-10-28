@@ -1,10 +1,11 @@
-## Interface: 30400
+## Interface: 30403
 ## Title: MinimapButtonButton
 ## Title-ruRU: Универсальная кнопка миникарты
-## Version: 1.13
+## Version: 1.17.4
 ## Author: syndenbock
 ## Notes: Creates a button that collects all minimap buttons
 ## Notes-ruRU: Создает кнопку, которая собирает все значки миникарты воедино
+## IconTexture: Interface\AddOns\MinimapButtonButton\Media\Logo.blp
 
 ## X-Curse-Project-ID: 446096
 ## X-Wago-ID: pkNM4QGz

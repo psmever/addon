@@ -23,13 +23,17 @@ if self.displayedUnit then
 --	self.hasAggroValue= UnitThreatSituation(self.displayedUnit) or 0
 
 --UnitThreatSituaion 두번호출을 피하기 위해 hasAggro함수를 변경. ThreatSituaion값을 그대로 받아오고 이를 기준으로 hasAggro를 판정.	
+if UnitIsDeadOrGhost(self.displayedUnit) then
+	self.hasAggro = false
+	self.hasAggroValue=0
+else
 	self.hasAggroValue = hasAggro(self.displayedUnit)
 	if self.hasAggroValue > 1 then
 		self.hasAggro = true
 	else
 		self.hasAggro = false
 	end 
-
+end
 end
 
 --부하감소를 위해 A 경보소리로직만 이쪽으로 이동. 동시에 함수호출을 제거(시작)

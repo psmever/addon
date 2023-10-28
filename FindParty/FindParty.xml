@@ -191,8 +191,7 @@
 						BackdropTemplateMixin.OnBackdropLoaded(self)
 						self:SetBackdropBorderColor(0.15, 0.15, 0.15, 1)
 						self:SetBackdropColor(0, 0, 0, 1)
-						self:SetMinResize(400,70)
-						self:SetMaxResize(2000, 870)
+						self:SetResizeBounds(400,70, 2000, 870)
 					</OnLoad>
 					<OnMouseDown>FP_ListFrame:StartMoving()</OnMouseDown>
 					<OnMouseUp>

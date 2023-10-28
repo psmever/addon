@@ -8,12 +8,15 @@ function Auctionator.Variables.Initialize()
   Auctionator.Config.InitializeData()
   Auctionator.Config.InitializeFrames()
 
+  local GetAddOnMetadata = C_AddOns and C_AddOns.GetAddOnMetadata or GetAddOnMetadata
   Auctionator.State.CurrentVersion = GetAddOnMetadata("Auctionator", "Version")
 
   Auctionator.Variables.InitializeDatabase()
   Auctionator.Variables.InitializeShoppingLists()
   Auctionator.Variables.InitializePostingHistory()
   Auctionator.Variables.InitializeVendorPriceCache()
+
+  Auctionator.Groups.Initialize()
 
   Auctionator.State.Loaded = true
 end
@@ -109,14 +112,11 @@ function Auctionator.Variables.InitializePostingHistory()
 end
 
 function Auctionator.Variables.InitializeShoppingLists()
-  if AUCTIONATOR_SHOPPING_LISTS == nil then
-    AUCTIONATOR_SHOPPING_LISTS = {}
-  end
-
-  Auctionator.Shopping.Lists.Data = AUCTIONATOR_SHOPPING_LISTS
-  Auctionator.Shopping.Lists.Prune()
-  Auctionator.Shopping.Lists.Sort()
-  AUCTIONATOR_SHOPPING_LISTS = Auctionator.Shopping.Lists.Data
+  Auctionator.Shopping.ListManager = CreateAndInitFromMixin(
+    AuctionatorShoppingListManagerMixin,
+    function() return AUCTIONATOR_SHOPPING_LISTS end,
+    function(newVal) AUCTIONATOR_SHOPPING_LISTS = newVal end
+  )
 
   AUCTIONATOR_RECENT_SEARCHES = AUCTIONATOR_RECENT_SEARCHES or {}
 end

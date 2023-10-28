@@ -20,6 +20,9 @@ RegisterStateDriver(IRF3, "combat", "[combat]yes;no")
 local _G = _G
 local select = _G.select
 
+
+
+
 for i = 0, 8 do
 	IRF3.headers[i] = CreateFrame("Frame", IRF3:GetName().."Group"..i, IRF3, "InvenRaidFrames3GroupHeaderTemplate")
 	IRF3:SetFrameRef("header", IRF3.headers[i])
@@ -37,23 +40,22 @@ for i = 0, 8 do
 end
 
 
-for i = 0, 1 do 
-	IRF3.tankheaders[i] = CreateFrame("Frame", IRF3:GetName().."TankGroup"..i, IRF3, "InvenRaidFrames3GroupHeaderTemplate")
-	IRF3:SetFrameRef("header", IRF3.tankheaders[i])
-	IRF3:Execute("TANKHEADERS["..i.."] = self:GetFrameRef('header')")
-	IRF3.tankheaders[i].index = i
-	IRF3.tankheaders[i].visible = 0
-	IRF3.tankheaders[i].members = {}
-	IRF3.tankheaders[i]:SetAttribute("groupindex", i)
-	IRF3.tankheaders[i]:Show()
-	IRF3.tankheaders[i]:SetAttribute("startingIndex", 1)
-	IRF3.tankheaders[i]:Hide()
-	IRF3.tankheaders[i].partyTag:SetParent(IRF3.tankheaders[i].members[1])
-	IRF3.tankheaders[i].partyTag:RegisterForDrag("LeftButton", "RightButton")
-	
-	IRF3.tankheaders[i]:SetScript("OnHide", InvenRaidFrames3Member_OnDragStop)
-	IRF3.tankheaders[i]:SetMovable(true)
-end
+
+	IRF3.tankheaders = CreateFrame("Frame", IRF3:GetName().."TankGroup", IRF3, "InvenRaidFrames3GroupHeaderTemplate")
+	IRF3:SetFrameRef("header", IRF3.tankheaders)
+	IRF3:Execute("TANKHEADERS = self:GetFrameRef('header')")
+	IRF3.tankheaders.index = i
+	IRF3.tankheaders.visible = 0
+	IRF3.tankheaders.members = {}
+	IRF3.tankheaders:SetAttribute("groupindex", i)
+	IRF3.tankheaders:Show()
+	IRF3.tankheaders:SetAttribute("startingIndex", 1)
+	IRF3.tankheaders:Hide()
+	IRF3.tankheaders.partyTag:SetParent(IRF3.tankheaders.members[1])
+	IRF3.tankheaders.partyTag:RegisterForDrag("LeftButton", "RightButton")
+	IRF3.tankheaders:SetScript("OnHide", InvenRaidFrames3Member_OnDragStop)
+	IRF3.tankheaders:SetMovable(true)
+
 
 
 
@@ -74,9 +76,9 @@ IRF3.petHeader:SetAttribute("showPlayer", true)
 IRF3.petHeader:SetAttribute("showParty", true)
 IRF3.petHeader:SetAttribute("showRaid", true)
 IRF3.petHeader:SetAttribute("useOwnerUnit", true)
-IRF3.petHeader:SetAttribute("unitsuffix", "pet")
+--IRF3.petHeader:SetAttribute("unitsuffix", "pet")
 IRF3.petHeader:SetAttribute("initialConfigFunction", "self:SetAttribute('useOwnerUnit', true) self:SetAttribute('unitsuffix', 'pet')")
-IRF3.petHeader:SetAttribute("startingIndex", -79)
+IRF3.petHeader:SetAttribute("startingIndex", -39)
 IRF3.petHeader:Show()
 IRF3.petHeader:SetAttribute("startingIndex", 1)
 IRF3.petHeader:Hide()
@@ -90,10 +92,14 @@ IRF3.petHeader.border:SetPoint("BOTTOMRIGHT", 5, -5)
 IRF3.petHeader.border:SetAlpha(0)
 IRF3.petHeader.border:SetPoint("BOTTOMRIGHT", 5, -5)
 IRF3.petHeader.border:SetAlpha(0)
+IRF3.petHeader:SetScript("OnHide", InvenRaidFrames3Member_OnDragStop)
+
 IRF3:Hide()
 IRF3:HookScript("OnAttributeChanged", IRF3.StopMovingOrSizing)
 IRF3:SetAttribute("_childupdate-clearunit", "self:ChildUpdate(scriptid, message)")
+
 IRF3:SetAttribute("_onattributechanged", [=[
+
 	if name == "state-combat" and value == "yes" and self:GetAttribute("preview") then
 		self:SetAttribute("preview", nil)
 	elseif name == "preview" then
@@ -106,6 +112,7 @@ IRF3:SetAttribute("_onattributechanged", [=[
 	elseif not self:GetAttribute("ready") or self:GetAttribute("preview") then
 		return
 	elseif name == "state-group" or (name == "startupdate" and value) or (name == "state-grouptype" and self:GetAttribute("groupby") == "CLASS") or name == "run" then
+
 		self:Hide()
 		PETHEADER:Hide()
 		self:SetAttribute("startupdate", nil)
@@ -116,6 +123,8 @@ IRF3:SetAttribute("_onattributechanged", [=[
 		end
 		local width = self:GetAttribute("width")
 		local height = self:GetAttribute("height")
+		local petwidth2 = self:GetAttribute("petwidth2")
+		local petheight2 = self:GetAttribute("petheight2")
 		local usePet = self:GetAttribute("usepet")
 		local enableTankFrame = self:GetAttribute("enableTankFrame")
 		local petheight = self:GetAttribute("petheight")
@@ -149,34 +158,34 @@ IRF3:SetAttribute("_onattributechanged", [=[
 		local count = 0
 
 		for i = 0, 8 do
+
 			HEADERS[i]:Hide()
 			HEADERS[i]:ChildUpdate("clearunit")
 
 			if group == "raid" then
+
 				if i == 0 then
-				TANKHEADERS[i]:Hide()
-				TANKHEADERS[i]:ChildUpdate("clearunit")
-				TANKHEADERS[i]:SetAttribute("showPlayer", true)
-				TANKHEADERS[i]:SetAttribute("showParty", true)
-				TANKHEADERS[i]:SetAttribute("showSolo", true)
-				TANKHEADERS[i]:SetAttribute("xOffset",0)
-				TANKHEADERS[i]:SetAttribute("yOffset", 0)
-				TANKHEADERS[i]:SetAttribute("roleFilter", "MT,MAINTANK")
-				TANKHEADERS[i]:SetAttribute("sortMethod", "INDEX")
-				TANKHEADERS[i]:ChildUpdate("width", width)
-				TANKHEADERS[i]:ChildUpdate("height", height)
---				TANKHEADERS[i]:ChildUpdate("usepet", usePet)
---				TANKHEADERS[i]:ChildUpdate("petheight", petheight)
+				TANKHEADERS:Hide()
+				TANKHEADERS:ChildUpdate("clearunit")
+				TANKHEADERS:SetAttribute("showPlayer", false)
+				TANKHEADERS:SetAttribute("showParty", false)
+				TANKHEADERS:SetAttribute("showSolo", false)
+				TANKHEADERS:SetAttribute("xOffset",0)
+				TANKHEADERS:SetAttribute("yOffset", 0)
+				TANKHEADERS:SetAttribute("roleFilter", "MT,MAINTANK")
+				TANKHEADERS:SetAttribute("sortMethod", "INDEX")
+				TANKHEADERS:ChildUpdate("width", width)
+				TANKHEADERS:ChildUpdate("height", height)
+--				TANKHEADERS:ChildUpdate("usepet", usePet)
+--				TANKHEADERS:ChildUpdate("petheight", petheight)
 				if enableTankFrame then
-					TANKHEADERS[i]:Show()
+					TANKHEADERS:Show()
 				else
-					TANKHEADERS[i]:Hide()
+					TANKHEADERS:Hide()
 				end
 				 
  
---				TANKHEADERS[0]:ClearAllPoints()
---  				TANKHEADERS[0]:SetPoint("TOPLEFT", self, "TOPLEFT", -100,-13) 
--- 				TANKHEADERS[0]:SetPoint("BOTTOMLEFT") 
+
 
 				end
 				if i > 0 then
@@ -191,23 +200,18 @@ IRF3:SetAttribute("_onattributechanged", [=[
 							HEADERS[i]:SetAttribute("groupingOrder", index)
 							HEADERS[i]:SetAttribute("startingIndex", 1)
 							HEADERS[i]:SetAttribute("sortMethod", sortname and "NAME" or "INDEX")
+							HEADERS[i]:SetAttribute("nameList", nil)
+
 							HEADERS[i]:ChildUpdate("width", width)
 							HEADERS[i]:ChildUpdate("height", height)
 							HEADERS[i]:ChildUpdate("usepet", usePet)
 							HEADERS[i]:ChildUpdate("petheight", petheight)
 							HEADERS[i]:Show()
 
---[[
-							--공대이고 1파티 아니면 숨기기
-				TANKHEADERS[i]:ChildUpdate("width", width)
-				TANKHEADERS[i]:ChildUpdate("height", height)
- 	 			TANKHEADERS[i]:SetAttribute("showPlayer", false)
-				TANKHEADERS[i]:SetAttribute("showParty", false)
-				TANKHEADERS[i]:SetAttribute("showSolo", false)
---]]
 			
 						end
 					elseif i <= grouptype then
+
 						HEADERS[i]:SetAttribute("showRaid", true)
 						HEADERS[i]:SetAttribute("xOffset", xOffset)
 						HEADERS[i]:SetAttribute("yOffset", yOffset)
@@ -218,27 +222,23 @@ IRF3:SetAttribute("_onattributechanged", [=[
 
 						HEADERS[i]:SetAttribute("startingIndex", (i - 1) * 5 + 1)
 						HEADERS[i]:SetAttribute("sortMethod", sortname and "NAME" or "INDEX")
+						HEADERS[i]:SetAttribute("nameList",nil)
 						HEADERS[i]:ChildUpdate("width", width)
 						HEADERS[i]:ChildUpdate("height", height)
 						HEADERS[i]:ChildUpdate("usepet", usePet)
 						HEADERS[i]:ChildUpdate("petheight", petheight)
 						HEADERS[i]:Show()
 
-						--공대이고 1파티 아니면 숨기기
-				TANKHEADERS[i]:ChildUpdate("width", width)
-				TANKHEADERS[i]:ChildUpdate("height", height)
- 	 			TANKHEADERS[i]:SetAttribute("showPlayer", false)
-				TANKHEADERS[i]:SetAttribute("showParty", false)
-				TANKHEADERS[i]:SetAttribute("showSolo", false)
+ 
 
  
 					end
 				end
 			elseif i == 0 and (group == "party" or self:GetAttribute("use") == 1) then
- 
-				TANKHEADERS[0]:ClearAllPoints()
-				TANKHEADERS[0]:SetPoint("TOPLEFT", self, "TOPLEFT", -100,-12)
-
+			--파티일때
+				TANKHEADERS:ClearAllPoints()
+				TANKHEADERS:SetPoint("TOPLEFT", self, "TOPLEFT", -100,-12)
+				TANKHEADERS:Hide()
 				HEADERS[i]:SetAttribute("showPlayer", true)
 				HEADERS[i]:SetAttribute("showParty", true)
 				HEADERS[i]:SetAttribute("showSolo", true)
@@ -247,26 +247,26 @@ IRF3:SetAttribute("_onattributechanged", [=[
 				HEADERS[i]:SetAttribute("groupBy", groupby)
 				HEADERS[i]:SetAttribute("groupFilter", "1,2,3,4,5,6,7,8")
 				HEADERS[i]:SetAttribute("groupingOrder", "1,2,3,4,5,6,7,8")
+
+	if HEADERS[i]:GetAttribute("nameList") and #HEADERS[i]:GetAttribute("nameList")>0  then
+				HEADERS[i]:SetAttribute("sortMethod", "NAMELIST")
+				HEADERS[i]:SetAttribute("nameList", HEADERS[i]:GetAttribute("nameList"))
+	else
 				HEADERS[i]:SetAttribute("sortMethod", "INDEX")
+	end
+
 				HEADERS[i]:ChildUpdate("width", width)
 				HEADERS[i]:ChildUpdate("height", height)
 				HEADERS[i]:ChildUpdate("usepet", usePet)
 				HEADERS[i]:ChildUpdate("petheight", petheight)
 				HEADERS[i]:Show()
 
---[[
-				--공대이고 1파티 아니면 숨기기
-  				TANKHEADERS[i]:ChildUpdate("width", width)
-				TANKHEADERS[i]:ChildUpdate("height", height)
- 	 			TANKHEADERS[i]:SetAttribute("showPlayer", false)
-				TANKHEADERS[i]:SetAttribute("showParty", false)
-				TANKHEADERS[i]:SetAttribute("showSolo", false)
---]]
-
+ 
  
 
 
 			end
+
 			if HEADERS[i]:IsShown() then
 				count = count + 1
 				HEADERS[i]:ChildUpdate("clearallpoints")
@@ -277,24 +277,25 @@ IRF3:SetAttribute("_onattributechanged", [=[
 				end
 			end
 
-			if i==0 and TANKHEADERS[i]:IsShown() then
+			if i==0 and TANKHEADERS:IsShown() then
 
 				count = count + 1
-				TANKHEADERS[i]:ChildUpdate("clearallpoints")
+				TANKHEADERS:ChildUpdate("clearallpoints")
 				if dir == 1 then
-					TANKHEADERS[i]:SetAttribute("point", anchor:find("TOP") and "TOP" or "BOTTOM")
+					TANKHEADERS:SetAttribute("point", anchor:find("TOP") and "TOP" or "BOTTOM")
 				else
-					TANKHEADERS[i]:SetAttribute("point", anchor:find("LEFT") and "LEFT" or "RIGHT")
+					TANKHEADERS:SetAttribute("point", anchor:find("LEFT") and "LEFT" or "RIGHT")
 				end
 			end
 		end
+
 
 		PETHEADER:Hide()
 		PETHEADER:ChildUpdate("clearunit")
 		if self:GetAttribute("usepetgroup") and (HEADERS[0]:IsShown() or count > 0) then
 			PETHEADER:ChildUpdate("clearallpoints")
-			PETHEADER:ChildUpdate("width", self:GetAttribute("width"))
-			PETHEADER:ChildUpdate("height", self:GetAttribute("height"))
+			PETHEADER:ChildUpdate("width", self:GetAttribute("petwidth2"))
+			PETHEADER:ChildUpdate("height", self:GetAttribute("petheight2"))
 			if HEADERS[0]:IsShown() then
 				PETHEADER:SetAttribute("groupBy", "CLASS")
 				PETHEADER:SetAttribute("groupFilter", "1,2,3,4,5,6,7,8")
@@ -314,6 +315,7 @@ IRF3:SetAttribute("_onattributechanged", [=[
 			PETHEADER:SetAttribute("maxColumns", 25)
 			PETHEADER:SetAttribute("unitsPerColumn", self:GetAttribute("petcolumn"))
 			anchor = self:GetAttribute("petanchor")
+
 			if anchor == "TOPLEFT" then
 				if self:GetAttribute("petdir") == 1 then
 					PETHEADER:SetAttribute("columnAnchorPoint", "LEFT")
@@ -324,7 +326,7 @@ IRF3:SetAttribute("_onattributechanged", [=[
 					PETHEADER:SetAttribute("point", "LEFT")
 				end
 				PETHEADER:SetAttribute("xOffset", offset)
-				PETHEADER:SetAttribute("yOffset", offset)
+				PETHEADER:SetAttribute("yOffset", -offset)
 			elseif anchor == "TOPRIGHT" then
 				if self:GetAttribute("petdir") == 1 then
 					PETHEADER:SetAttribute("columnAnchorPoint", "TOP")
@@ -333,7 +335,7 @@ IRF3:SetAttribute("_onattributechanged", [=[
 					PETHEADER:SetAttribute("columnAnchorPoint", "RIGHT")
 					PETHEADER:SetAttribute("point", "TOP")
 				end
-				PETHEADER:SetAttribute("xOffset", -offset)
+				PETHEADER:SetAttribute("xOffset", offset)
 				PETHEADER:SetAttribute("yOffset", -offset)
 			elseif anchor == "BOTTOMLEFT" then
 				if self:GetAttribute("petdir") == 1 then
@@ -344,7 +346,7 @@ IRF3:SetAttribute("_onattributechanged", [=[
 					PETHEADER:SetAttribute("point", "LEFT")
 				end
 				PETHEADER:SetAttribute("xOffset", offset)
-				PETHEADER:SetAttribute("yOffset", offset)
+				PETHEADER:SetAttribute("yOffset", -offset)
 			else
 				if self:GetAttribute("petdir") == 1 then
 					PETHEADER:SetAttribute("columnAnchorPoint", "RIGHT")
@@ -353,8 +355,8 @@ IRF3:SetAttribute("_onattributechanged", [=[
 					PETHEADER:SetAttribute("columnAnchorPoint",  "BOTTOM")
 					PETHEADER:SetAttribute("point", "RIGHT")
 				end
-				PETHEADER:SetAttribute("xOffset", -offset)
-				PETHEADER:SetAttribute("yOffset", offset)
+				PETHEADER:SetAttribute("xOffset", offset)
+				PETHEADER:SetAttribute("yOffset", -offset)
 			end
 			PETHEADER:Show()
 		end
@@ -362,15 +364,19 @@ IRF3:SetAttribute("_onattributechanged", [=[
 		self:Show()
 
 		self:SetAttribute("updateposition", not self:GetAttribute("updateposition"))
+		PETHEADER:SetAttribute("updateposition", not self:GetAttribute("updateposition"))
+
 	elseif name == "updateposition" then
- 
-		local offsetx = self:GetAttribute("offset")
+
+		local offsetx = self:GetAttribute("offset") or 0
 		local offsety = offsetx + (self:GetAttribute("usepet") and self:GetAttribute("petheight") or 0)
 		local tag = self:GetAttribute("partytag")
 		local column = self:GetAttribute("column")
 		local anchor = self:GetAttribute("anchor")
 		local width = self:GetAttribute("width")
 		local height = self:GetAttribute("height")
+		local petwidth = self:GetAttribute("petwidth")
+		local petheight = self:GetAttribute("petheight")
 		local tagx, tagy = 0, 0
 
 		local petanchor = self:GetAttribute("petanchor")
@@ -387,6 +393,7 @@ IRF3:SetAttribute("_onattributechanged", [=[
  
 
 		if HEADERS[0]:IsShown() then
+
 			HEADERS[0]:ClearAllPoints()
 			HEADERS[0]:SetPoint(anchor, self, anchor, anchor:find("RIGHT") and -tagx or tagx, anchor:find("TOP") and -tagy or tagy)
 		else
@@ -461,3 +468,5 @@ IRF3:SetAttribute("_onattributechanged", [=[
 
 	end
 ]=])
+ 
+

@@ -1,9 +1,9 @@
-## Interface: 30400
+## Interface: 30403
 ## Title: BiS-Tooltip
-## Notes: v7.8. In game BiS lists and item tooltip enrichment.
+## Notes: v7.37. In game BiS lists and item tooltip enrichment.
 ## Author: Hellixoid
 ## Author: Dweem
-## Version: 7.8
+## Version: 7.37
 ## SavedVariables: BisTooltipDB
 ## OptionalDeps:
 
@@ -24,6 +24,7 @@ Bistooltip_wowtbc_items.lua
 Bistooltip_wowtbc_bislists.lua
 Bistooltip_wh_items.lua
 Bistooltip_wh_bislists.lua
+Bistooltip_horde_to_ali.lua
 Core.lua
 Config.lua
 Bistooltip.lua

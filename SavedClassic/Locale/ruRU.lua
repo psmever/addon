@@ -20,7 +20,9 @@ L["Show minimap icon"] = "Показать значок на миникарте"
 L["Show info"] = "Информационное окно"
 L["per Character"] = "По персонажу"
 L["per Realm"] = "По серверу"
+L["Show total gold"] = "показать общее золото"
 L["Hide info from level under"] = "Скрыть информацию с уровня ниже"
+L["Show current chracter first"] = true
 
 L["Tooltip - Character info."] = "Информация, относящаяся к параметру всплывающей подсказки" --"Информация для персонажа"
 L["Line 1 of char info."] = "Первая строка с информацией по специализации персонажа"
@@ -37,6 +39,7 @@ L["Desc_Char"] = "|cff00ff00■|r |cffccaa00Использование - Инф�
     .."|cffccaa00[cooldown]|r Перезарядка навыков профессии|n"
     .."|cffccaa00[dqCom] [dqMax]|r|n"
     .."|cffccaa00[dqReset]|r Time left until DQ Reset|n"
+    .."|cffccaa00[gs] [ilvl]|r|n"
     .."|cffccaa00[color/######]|r Цвет начала(RGB кодировка)|n|cffccaa00[color]|r Цвет окончания|n"
     .."  Цвет, добавляя /###### в конец|n"
     .."|cffffeeaa(ex) |r|cffccaa00[color/ffffff]Белый[color] =>|r |cffffffffБелый|r|n   |cffccaa00[item:6265|cffcc3333/cc66cc|r] => |r|cffcc66cc".."|T"..GetItemIcon(6265)..":14:14|t12|r|n"
@@ -81,6 +84,8 @@ L["expRest%"  ] = true
 L["dqCom"     ] = true
 L["dqMax"     ] = true
 L["dqReset"   ] = true
+L["gs"        ] = true
+L["ilvl"      ] = true
 L["instName"  ] = true
 L["instID"    ] = true
 L["difficulty"] = true
@@ -111,6 +116,8 @@ L["IoC"     ] = true
 L["shard"   ] = true
 L["venture" ] = true
 L["justice" ] = true
+L["sidereal"] = true
+L["defilers"] = true
 -- Heroic dungeon names, abbrs
 L["TOK"] = true
 L[ "AN"] = true
@@ -124,8 +131,34 @@ L["Ocu"] = true
 L[ "VH"] = true
 L[ "UK"] = true
 L[ "UP"] = true
-L["ToC"] = true
+L["ToCh"] = "ToC"
 L["HoR"] = true
 L["PoS"] = true
 L["FoS"] = true
+-- Raid abbr. WotLK
+L["Naxx"] = true
+L["OS"]   = true
+L["EoE"]  = true
+L["ULD"]  = true
+L["Ony"]  = true
+L["ToC"]  = true
+L["ICC"]  = true
+L["RS"]   = true
+L["VoA"]  = true
+-- Raid abbr. TBC
+L["SP"] = true
+L["ZA"] = true
+L["BT"] = true
+L["MH"] = true
+L["SC"] = true
+L["TK"] = true
+L["KZ"] = true
+L["GL"] = true
+L["ML"] = true
+-- Raid abbr. Vanilla
+L["AQ"] = true
+L["RA"] = true
+L["ZG"] = true
+L["BW"] = true
+L["MC"] = true
 end

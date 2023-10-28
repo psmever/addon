@@ -13,6 +13,7 @@ end
 
 local function setRaidIcon(icon, unit)
 	id = GetRaidTargetIndex(unit)
+
 	if id and IRF3.db.units.raidIconFilter[id] then
 		SetRaidTargetIconTexture(icon, id)
 		icon:SetSize(IRF3.db.units.raidIconSize, IRF3.db.units.raidIconSize)
@@ -23,6 +24,7 @@ local function setRaidIcon(icon, unit)
 end
 
 function InvenRaidFrames3Member_UpdateRaidIcon(self)
+
 	if not(IRF3.db.units.useRaidIcon and IRF3.db.units.raidIconSelf and setRaidIcon(self.raidIcon1, self.displayedUnit)) then
 		hideIcon(self.raidIcon1)
 	end

@@ -504,7 +504,9 @@ end
 
 		if classRaidBuffs[spellId] then
 		for _, i in ipairs(classRaidBuffs[spellId]) do
-			checkMask[i] = raidBuffInfo[spellId]
+
+--			checkMask[i] = raidBuffInfo[spellId]
+
 		end
 		end
 
@@ -512,8 +514,9 @@ end
 
 		if classRaidBuffs[spellId] then
 		for _, i in ipairs(classRaidBuffs[spellId]) do
-			checkMask[i] = raidBuffInfo[sameBuffs[spellId]]
+--			checkMask[i] = raidBuffInfo[sameBuffs[spellId]]
 			higherspellId=sameBuffs[spellId]
+
 		end
 		end
 
@@ -524,7 +527,7 @@ end
 	elseif playerClass=="MAGE" and spellId==1459 and (AuraUtil.FindAuraByName(L["달라란의 지능"], unit, filter) or AuraUtil.FindAuraByName(L["달라란의 총명함"], unit, filter)) then
 		if classRaidBuffs[spellId] then
 		for _, i in ipairs(classRaidBuffs[spellId]) do
-			checkMask[i] = raidBuffInfo[sameBuffs[spellId]]
+--			checkMask[i] = raidBuffInfo[sameBuffs[spellId]]
 			higherspellId=sameBuffs[spellId]
 		end
 		end
@@ -532,7 +535,7 @@ end
 	else
 
 
-		if classRaidBuffs[spellId] and not IRF3.isClassic then
+		if classRaidBuffs[spellId] and not IRF3.isClassic then --클래식이 아니면 checkMask사용됨(for what?) -->checkmask 루틴 제거해둠
 
 		for _, i in ipairs(classRaidBuffs[spellId]) do
 			if checkMask[i] == nil then
@@ -623,20 +626,20 @@ end
 	end
 
 
-	wipe(checkMask)
+--	wipe(checkMask)
 	buffCnt = 0
 
 --기사이고 버프가 없을떄 표시조건이면 --> 자기가 건 축복이 하나라도 있으면 나머지는 없어도 표시않함(하나밖에 못거니까)
 --전사이고 버프가 없을때 표시조건이면-->자기가 건 전투/지휘가 하나라도 있으면 나머지는 없어도 표시안함(하나밖에 못거니까)
 if playerClass=="PALADIN" or playerClass=="WARRIOR"  then
 	for spellId in pairs(currentRaidBuffs) do
- 
+
 		if  playerbuffed ==false then-- and (InvenRaidFrames3CharDB.classBuff2[spellId] == 1 or InvenRaidFrames3CharDB.classBuff2[spellId] == 3 or InvenRaidFrames3CharDB.classBuff2[sameBuffs[spellId]]==1 or InvenRaidFrames3CharDB.classBuff2[sameBuffs[spellId]] ==3 ) then
  
 --전투8레벨이 와서 인식안됨(2048) -->same buff로직 타줘야함
 --지휘1레벨이 오면 인식됨(469)-->same buff로직 타줘야함
 
-		 buff,higherspellId = getBuff(self.displayedUnit, spellId, "PLAYER")
+		 buff,higherspellId = 	getBuff(self.displayedUnit, spellId, "PLAYER")
 
 			if buff then --본인이 건 버프가 하나라도 있으면 break
 				playerbuffed= true
@@ -659,6 +662,7 @@ end
  
 
 	for spellId in pairs(currentRaidBuffs) do
+
 	buff,higherspellId = getBuff(self.displayedUnit, spellId)
 
 		if not isMyParty then
@@ -716,6 +720,7 @@ end
 end
 
 local function updateClassBuff()
+
 
 	wipe(currentRaidBuffs)
 	wipe(linkRaidBuffs)

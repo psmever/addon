@@ -10,11 +10,12 @@ local colorRed = { 1, 0, 0 }
 local colorGreen = { 0, 1, 0 }
 local colorOrange = {1, 0.4,0.04}
 local colorYellow = { 1, 1, 0 }
+local L = LibStub("AceLocale-3.0"):GetLocale("IRF3")
 local default = {
 	run = true,
 	use = 1,	-- 1:항상 2:파티 및 공격대 3:공격대
-	lock = false, scale = 1,
-	anchor = "TOPLEFT", dir = 1, width = 80, height = 50, offset = 1, highlightAlpha = 0.5,
+	lock = false, scale = 1,shiftmove=false,
+	anchor = "TOPLEFT", dir = 1, width = 80, height = 50, offset = 1, highlightAlpha = 0.5,petwidth2=80,petheight2=50,
 	usePet = 3, petHeight = 12, petanchor = "TOPLEFT", petscale = 1, petcolumn = 5, petdir = 1,
 	border = false, borderBackdrop = { 0,0,0,1}, borderBackdropBorder = { 0,0,0,1},
 	partyTag = true, partyTagParty = { 0.28, 0.7, 0.8 }, partyTagRaid = { 0, 0, 0},
@@ -28,8 +29,8 @@ local default = {
 	classshown = { WARRIOR = true, DRUID = true, PALADIN = true, DEATHKNIGHT = true, PRIEST = true, SHAMAN = true, ROGUE = true, MAGE = true, WARLOCK = true, HUNTER = true},
 	useManager = true, managerPos = 25,
 	castingSent = 0,	-- 0:사용 안함 1: 항상 표시 2: 마우스 오버시 표시
-	enableClickCast = true,
-	FadeInFrequency=1,
+	enableClickCast = true, useClique = false,
+--	FadeInFrequency=1,
 	enableInstantHealth = false,
 	enableHealComm = false,
 	smootheffect = false,
@@ -38,25 +39,28 @@ local default = {
 		orientation = 1,
 		displayPowerBar = true, powerBarHeight = 0.10, powerBarPos = 2,
 		displayHealPrediction = true, healPredictionAlpha = 1.00, myHealPredictionColor = colorGreen, myHoTPredictionColor = colorGreen, otherHealPredictionColor = colorOrange, otherHoTPredictionColor = colorOrange,  AbsorbPredictionColor = { 0, 0.7, 1 },
-		healIcon = true, healIconOther = true, showhealers=false, healIconPos = "BOTTOMLEFT", healIconSize = 10,
+		healIcon = true, healIconOther = true,  healIconPos = "BOTTOMLEFT", healIconSize = 10,
 		displayRaidRoleIcon = true, displayRaidRoleIcon2 = true, roleIconPos = "TOPLEFT", roleIconSize = 12, centerStatusIcon = true, roleIcontype = 0,
 		useRaidIcon = true, displayRaidRoleIconTank = false, raidIconPos = "TOPLEFT", raidIconSize = 12, raidIconSelf = true, raidIconTarget = false, raidIconFilter = { true, true, true, true, true, true, true, true },
-		useClassColors = true, className = false, outRangeName = true, outRangeName2 = false, offlineName = true, deathName = true, outRangeAlpha = 0.35,
+		useClassColors = true, usePetClassColors=false, className = false, outRangeName = true, outRangeName2 = false, offlineName = true, deathName = true, outRangeAlpha = 0.35, hidepetName=false,
 		useBossAura = true, bossAuraSize = 18, bossAuraPos = "CENTER", bossAuraAlpha = 0.75, bossAuraTimer = true,
 		bossAuraOpt = 1,	-- 1:남은 시간 2:경과 시간 0:시간 표시 안함
-		useSurvivalSkill = true, enableSurvivalMultiline =true, showSurvivalSkillTimer = true, showSurvivalSkillSub = false, showSurvivalSkillPotion = true,
+		useSurvivalSkill = true, enableSurvivalMultiline =true, showSurvivalSkillTimer = true, showSurvivalSkillSub = false, showSurvivalSkillPotion = true, showSurvivalAsSpellTimer=true,
+		showSurvivalAsSpellIcon={true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,true,false,true,true},
+		showSurvivalAsSpellIconPos="TOPRIGHT",showSurvivalAsSpellIconSize=1.5,
 		fadeOutOfRangeHealth = true, fadeOutOfRangePower = true, fadeOutAlpha = 0.35,
 		texture = "Smooth",
 		tooltip = 2,		-- 1:항상 2:비전투중에만 3:전투중에만 0:표시안함
 		healthRange = 1,	-- 1:항상 2:사정거리 안 3:사정거리 밖
 		healthType = 0,	-- 1:손실생명력 2:손실생명력% 3:남은생명력 4:남은생명력% 0:표시안함
-		nameEndl = false, shortLostHealth = false, healthRed = false, showAbsorbHealth = false,
-		useCastingBar = true, castingBarColor = { 0.2, 0.8, 0.2 }, castingBarHeight = 3, castingBarPos = 2, -- 1:TOP 2:BOTTOM 3:LEFT 4:RIGHT
+		nameEndl = false, shortLostHealth = false, healthRed = true, showAbsorbHealth = true,useAbsorbInClassic=false,AbsorbInClassictype=2,
+		useCastingBar = true, useCastingBarIcon=true,castingBarColor = { 0.2, 0.8, 0.2 }, castingBarHeight = 10, castingBarFontSize = 10, castingBarPos = 2, -- 1:TOP 2:BOTTOM 3:LEFT 4:RIGHT
 		usePowerBarAlt = true, powerBarAltHeight = 3, powerBarAltPos = 1, -- 1:TOP 2:BOTTOM 3:LEFT 4:RIGHT
 		useResurrectionBar = true, resurrectionBarColor = { 0, 0.75, 1 },
 		dispelSound = "None", dispelSoundDelay = 5, useHarm = true,
 		outline = {
 			type = 2,	-- 1:해제 가능한 디버프 2:대상 3:마우스 오버 4:체력 낮음 5:어그로 6:전술목표 아이콘 0:사용 안함
+			glow =false,
 			scale = 0.8, alpha = 1,
 			lowHealth = 0.7, lowHealthColor = colorRed,
 			lowHealth2 = 9999, lowHealthColor2 = colorRed,
@@ -64,19 +68,20 @@ local default = {
 			targetColor = colorYellow, mouseoverColor = colorYellow, aggroColor = colorRed,
 		},
 		debuffIcon = 5, debuffIconSize = 10, debuffIconPos = "TOPRIGHT", debuffIconType = 1,	-- 1:Icon+Color 2:Icon 3:Color
+		debuffIconFontSize=8,debuffIconTimerType=1,
 		debuffIconFilter = { Magic = true, Curse = true, Disease = true, Poison = true, none = true },
 		buffIconSize = 12, buffIconPos = "LEFT",
-		useAggroArrow = true, aggroType = 1, -- 1:사용 안함 2:항상 3:파티/공격대 4:공격대
+		useAggroArrow = true,useAggroNameColor=false, aggroType = 1, -- 1:사용 안함 2:항상 3:파티/공격대 4:공격대
 		aggroDetailColor = true,
 		aggroGain = "None", aggroLost = "None",
 		useDispelColor = true,
 		RaidCheck=false, flaskFlags=300, foodFlags=300, runeFlags=300, showRunes=false, annFood=true, annFlask=true, annRune=true, RaidCheckAnn=false,
-		useLeaderIcon=false, leaderIconSize=12, leaderIconPos = "TOPLEFT" , looterIconPos="TOPLEFT", SpellTimerFontColor= colorWhite, SpellTimerOtherFontColor = colorWhite, SpellTimerCountColor =colorWhite
-		
+		useLeaderIcon=false, leaderIconSize=12, leaderIconPos = "TOPLEFT" , looterIconPos="TOPLEFT", SpellTimerFontColor= colorWhite, SpellTimerOtherFontColor = colorWhite, SpellTimerCountColor =colorWhite,
+		petframeautopos=false ,sortplayer=1, 
 
 	},
 	font = {
-		file = "기본 글꼴", size = 12, attribute = "", shadow = true,
+		file = L["default_font"], size = 12, attribute = "", shadow = true,
 	},
 	colors = {
 		name = { 1, 1, 1 },
@@ -85,6 +90,7 @@ local default = {
 		vehicle = { 0, 0.4, 0 },
 		pet = colorGreen,
 		offline = { 0.25, 0.25, 0.25 },
+		specialdebuff={0.20,0.68,0.60},
 		WARRIOR = { RAID_CLASS_COLORS.WARRIOR.r, RAID_CLASS_COLORS.WARRIOR.g, RAID_CLASS_COLORS.WARRIOR.b },
 		PRIEST = { RAID_CLASS_COLORS.PRIEST.r, RAID_CLASS_COLORS.PRIEST.g, RAID_CLASS_COLORS.PRIEST.b },
 		ROGUE = { RAID_CLASS_COLORS.ROGUE.r, RAID_CLASS_COLORS.ROGUE.g, RAID_CLASS_COLORS.ROGUE.b },
@@ -164,6 +170,17 @@ function IRF3:InitDB()
 				db.units.bossAuraOpt = db.units.bossDebuffOpt
 				db.units.bossDebuffOpt = nil
 			end
+
+			--구버전 보정(profile자동변환 속성을 계정db->캐릭터 db로 변경)
+
+			db.units.profile_1m =db.profile_1m
+			db.units.profile_5m =db.profile_5m
+			db.units.profile_10m =db.profile_10m
+			db.units.profile_25m =db.profile_25m
+			db.units.profile_40m =db.profile_40m
+			db.units.profile_spec1 =db.profile_spec1
+			db.units.profile_spec2 =db.profile_spec2
+
 		end
 		if db.ignoreDebuffs then
 			db.ignoreAura = db.ignoreDebuffs
@@ -194,6 +211,7 @@ function IRF3:InitDB()
 		end
 	end
 	self.profileName = UnitName("player").." - "..GetRealmName()
+
 	self:SetProfile(InvenRaidFrames3DB.profileKeys[self.profileName])
 	if InvenRaidFrames3CharDB and InvenRaidFrames3CharDB.class ~= self.playerClass then
 		wipe(InvenRaidFrames3CharDB)
@@ -208,16 +226,22 @@ function IRF3:InitDB()
 end
 
 function IRF3:SetProfile(profile)
+
 	profile = profile or defaultProfile
-	if type(profile) == "string" and profile ~= self.dbName then
+	if type(profile) == "string" and profile ~= self.dbName  then
 		if self.dbName and InvenRaidFrames3DB.profiles[self.dbName] then
 			LBDB:UnregisterDB(InvenRaidFrames3DB.profiles[self.dbName])
 		end
-		if profile == defaultProfile then
-			InvenRaidFrames3DB.profileKeys[self.profileName] = nil
-		else
-			InvenRaidFrames3DB.profileKeys[self.profileName] = profile
-		end
+
+
+			if profile == defaultProfile then
+				InvenRaidFrames3DB.profileKeys[self.profileName] = nil
+			else
+				InvenRaidFrames3DB.profileKeys[self.profileName] = profile
+
+			end
+
+
 		if not InvenRaidFrames3DB.profiles[profile] then
 			InvenRaidFrames3DB.profiles[profile] = {}
 		end
@@ -227,6 +251,7 @@ function IRF3:SetProfile(profile)
 end
 
 function IRF3:ApplyPorfile()
+	if InCombatLockdown() then return end
 	self:UpdateTooltipState()
 	self:LoadPosition()
 	self.nameWidth = self.db.width - 2
@@ -240,6 +265,7 @@ function IRF3:ApplyPorfile()
 	self:BuildAuraList()
 	self:BuildSpellTimerList()
 	self:UpdateSpellTimerFont()
+
 	if self.db.border then
 		self.border:SetBackdropColor(unpack(self.db.borderBackdrop))
 		self.border:SetBackdropBorderColor(unpack(self.db.borderBackdropBorder))
@@ -310,16 +336,18 @@ function IRF3:UpdateGroupFilter()
 	self:SetAttribute("startupdate", nil)
 	groupfilter = nil
 	if self.db.partyTag and self.db.groupby == "GROUP" then
+
 		self.headers[0].partyTag:Show()
 		self.headers[0].partyTag.tex:SetColorTexture(unpack(self.db.partyTagParty))
 		self.headers[0].partyTag.text:SetText(setPartyTag(self.headers[0]) and L["파티헤더"] or "P")
 
 
-		self.tankheaders[0].partyTag:Show()
-		self.tankheaders[0].partyTag.tex:SetColorTexture(unpack(self.db.partyTagParty))
-		self.tankheaders[0].partyTag.text:SetText(setPartyTag(self.tankheaders[0]) and L["방어전담헤더"])
+		self.tankheaders.partyTag:Show()
+		self.tankheaders.partyTag.tex:SetColorTexture(unpack(self.db.partyTagParty))
+		self.tankheaders.partyTag.text:SetText(setPartyTag(self.tankheaders) and L["방어전담헤더"])
 	else
 		self.headers[0].partyTag:Hide()
+		self.tankheaders.partyTag:Hide()
 	end
 	setPet(self.headers[0])
 	self:SetAttribute("grouporder0", 0)
@@ -329,11 +357,18 @@ function IRF3:UpdateGroupFilter()
 			if self.db.partyTag then
 				self.headers[i].partyTag:Show()
 				self.headers[i].partyTag.tex:SetColorTexture(unpack(i == self.playerGroup and self.db.partyTagParty or self.db.partyTagRaid))
-				self.headers[i].partyTag.text:SetFormattedText(setPartyTag(self.headers[i]) and (L["파티"].." %d") or "%d", i)
-
+				self.headers[i].partyTag.text:SetFormattedText(  setPartyTag(self.headers[i])   and (L["파티"] .." %d") or "P%d", i)
+				self.headers[i].partyTag.subgroup =i
+				
+				if i==1 then
+				self.tankheaders.partyTag:Show()
+				self.tankheaders.partyTag.tex:SetColorTexture(unpack(i == self.playerGroup and self.db.partyTagParty or self.db.partyTagRaid))
+				self.tankheaders.partyTag.text:SetText(setPartyTag(self.tankheaders) and L["방어전담헤더"])
+				end
 
 			else
 				self.headers[i].partyTag:Hide()
+				if i==1 then self.tankheaders.partyTag:Hide() end
 			end
 			if self.db.groupshown[i] then
 				groupfilter = (groupfilter and (groupfilter..",") or "")..i
@@ -345,6 +380,7 @@ function IRF3:UpdateGroupFilter()
 
 		end
 	else
+
 		for i = 1, 8 do
 			self.headers[i].partyTag:Hide()
 			setPet(self.headers[i])
@@ -355,8 +391,12 @@ function IRF3:UpdateGroupFilter()
 			end
 		end
 	end
+
 	self:SetAttribute("width", self.db.width)
 	self:SetAttribute("height", self.db.height)
+	self:SetAttribute("petwidth2", self.db.petwidth2)
+	self:SetAttribute("petheight2", self.db.petheight2)
+
 	self:SetAttribute("usepet", self.db.usePet == 2)
 	self:SetAttribute("enableTankFrame", self.db.enableTankFrame)
 	self:SetAttribute("usepetgroup", self.db.usePet == 3)
@@ -373,6 +413,7 @@ function IRF3:UpdateGroupFilter()
 	self:SetAttribute("groupby", self.db.groupby)
 	self:SetAttribute("groupfilter", groupfilter or "0")
 	self:SetAttribute("startupdate", true)
+
 	if self.optionFrame.preview then
 		self.optionFrame:SetPreview(self.optionFrame.preview.show)
 	end
@@ -382,5 +423,7 @@ function IRF3:UpdateGroupFilter()
 	if self.optionFrame.class then
 		self.optionFrame.class:Update()
 	end
+
 	self:UpdateManagerGroupFilter()
+	InvenRaidFrames3Member_Sort()
 end

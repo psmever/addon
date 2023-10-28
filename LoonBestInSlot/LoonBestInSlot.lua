@@ -12,7 +12,7 @@ LBIS.EnchantsBySpecAndId = {};
 LBIS.SpellCache = {};
 
 LBIS.AllItemsCached = false;
-LBIS.CurrentPhase = 1;
+LBIS.CurrentPhase = 4;
 
 LBIS.EventFrame = CreateFrame("FRAME",addonName.."Events")
 
@@ -38,6 +38,7 @@ function LBIS:Startup()
 	LBIS:CreateSettings();
 	LBIS:RegisterMiniMap();
     LBIS:PreCacheItems();
+	LBIS:InitializeUI();
 end
 
 function LBIS:RegisterEvent(...)
@@ -102,7 +103,7 @@ function LBIS:AddItem(bisEntry, id, slot, bis)
 		return;
 	end	
 	
-		if not LBIS.ItemsByIdAndSpec[itemId] then
+	if not LBIS.ItemsByIdAndSpec[itemId] then
 		LBIS.ItemsByIdAndSpec[itemId] = {}
 	end
 	

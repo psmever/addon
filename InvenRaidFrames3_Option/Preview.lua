@@ -292,18 +292,18 @@ function Option:SetPreview(show)
 					width, height = 0, 0
 				elseif IRF3.db.petcolumn == 1 or i % IRF3.db.petcolumn == 1 then
 					if IRF3.db.petdir == 1 then
-						width, height = width + IRF3.db.width + IRF3.db.offset, 0
+						width, height = width + IRF3.db.petwidth2 + IRF3.db.offset, 0
 					else
-						width, height = 0, height + IRF3.db.height + IRF3.db.offset
+						width, height = 0, height + IRF3.db.petheight2 + IRF3.db.offset
 					end
 				elseif IRF3.db.petdir == 1 then
-					height = height + IRF3.db.height + IRF3.db.offset
+					height = height + IRF3.db.petheight2 + IRF3.db.offset
 				else
-					width = width + IRF3.db.width + IRF3.db.offset
+					width = width + IRF3.db.petwidth2 + IRF3.db.offset
 				end
 				p1 = max(p1, width)
 				p2 = max(p2, height)
-				preview.petHeader.members[i]:SetSize(IRF3.db.width, IRF3.db.height)
+				preview.petHeader.members[i]:SetSize(IRF3.db.petwidth2, IRF3.db.petheight2)
 				preview.petHeader.members[i]:ClearAllPoints()
 				preview.petHeader.members[i]:SetPoint(IRF3.db.petanchor, preview.petHeader, IRF3.db.petanchor, width * o1, height * o2)
 				preview.petHeader.members[i]:Show()
@@ -311,7 +311,7 @@ function Option:SetPreview(show)
 			for i = members + 1, 40 do
 				preview.petHeader.members[i]:Hide()
 			end
-			preview.petHeader:SetSize(p1 + IRF3.db.width, p2 + IRF3.db.height)
+			preview.petHeader:SetSize(p1 + IRF3.db.petwidth2, p2 + IRF3.db.petheight2)
 		else
 			preview.petHeader:Hide()
 		end

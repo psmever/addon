@@ -1,8 +1,5 @@
 LBIS.ItemList = {};
 
---TODO: Sort items based on order entered
---TODO: Swap wowhead items list with custom list
-
 local itemSlotOrder = {}
 itemSlotOrder[LBIS.L["Head"]] = 0;
 itemSlotOrder[LBIS.L["Shoulder"]] = 1;
@@ -69,37 +66,62 @@ local function printSource(itemId, specItemSource, dl)
     local sourceNumberText1, sourceNumberText2, sourceNumberText3 = strsplit("/", sourceNumberText);
     local sourceLocationText1, sourceLocationText2, sourceLocationText3 = strsplit("/", sourceLocationText);
 
+    local function printSourceText(sourceText, sourceNumberText, sourceLocationText, firstRow)
+        if not firstRow then
+            text = text.."\n"
+        end
+
+        local sourceSplit = { strsplit("&", sourceText) };
+        local sourceNumberSplit = { strsplit("&", sourceNumberText) };
+               
+		local first = false;
+        for index, source in pairs(sourceSplit) do		
+			if first then
+				text = text.." & ";
+			else
+				first = true;
+			end
+            text = text..strtrim(source);
+			if sourceNumberSplit[index] ~= nil then
+				local trimNumber = strtrim(sourceNumberSplit[index]);
+				if trimNumber ~= "" and trimNumber ~= "0" and trimNumber ~= "1" then
+					text = text.." ("..trimNumber..")";
+				end
+			end
+        end
+
+        if sourceLocationText ~= nil and sourceLocationText ~= "" then
+            text = text.." - "..sourceLocationText;
+        end
+    end
+
     if sourceText1 ~= nil and sourceText1 ~= "" then
-		text = sourceText1;	
-		if sourceNumberText1 ~= "" and sourceNumberText1 ~= "0" then
-			text = text.." ("..sourceNumberText1..")";
-        end
-        if sourceLocationText1 ~= nil and sourceLocationText1 ~= "" then
-            text = text.." - "..sourceLocationText1;
-        end
+        printSourceText(sourceText1, sourceNumberText1, sourceLocationText1, true);
     end
 
     if sourceText2 ~= nil and sourceText2 ~= "" then
-		text = text.."\n"..sourceText2;	
-		if sourceNumberText2 ~= "" and sourceNumberText2 ~= "0" then
-			text = text.." ("..sourceNumberText2..")";
-        end
-        if sourceLocationText2 ~= nil and sourceLocationText2 ~= "" then
-            text = text.." - "..sourceLocationText2;
-        end
+        printSourceText(sourceText2, sourceNumberText2, sourceLocationText2, false);       	
     end
 
     if sourceText3 ~= nil and sourceText3 ~= "" then
-		text = text.."\n"..sourceText3;	
-		if sourceNumberText3 ~= "" and sourceNumberText3 ~= "0" then
-			text = text.." ("..sourceNumberText3..")";
-        end
-        if sourceLocationText3 ~= nil and sourceLocationText3 ~= "" then
-            text = text.." - "..sourceLocationText3;
-        end
+		printSourceText(sourceText3, sourceNumberText3, sourceLocationText3, false);
     end
 	
     dl:SetText(text);
+end
+
+local function IsInFaction(specItemSource)
+
+    local englishFaction, _ = UnitFactionGroup("PLAYER");
+    
+    if specItemSource.SourceFaction == "B" then
+        return true;
+    elseif englishFaction == "Alliance" and specItemSource.SourceFaction == "A" then
+        return true;
+    elseif englishFaction == "Horde" and specItemSource.SourceFaction == "H" then
+        return true;
+    end
+    return false;
 end
 
 local function IsInSlot(specItem)
@@ -161,6 +183,84 @@ local function IsNotInClassic(specItem)
     return true;
 end
 
+local slotToWowCodes = {}
+slotToWowCodes[LBIS.L["Head"]] = "HEADSLOT";
+slotToWowCodes[LBIS.L["Shoulder"]] = "SHOULDERSLOT";
+slotToWowCodes[LBIS.L["Back"]] = "BACKSLOT";
+slotToWowCodes[LBIS.L["Chest"]] = "CHESTSLOT";
+slotToWowCodes[LBIS.L["Wrist"]] = "WRISTSLOT";
+slotToWowCodes[LBIS.L["Hands"]] = "HANDSSLOT";
+slotToWowCodes[LBIS.L["Waist"]] = "WAISTSLOT";
+slotToWowCodes[LBIS.L["Legs"]] = "LEGSSLOT";
+slotToWowCodes[LBIS.L["Feet"]] = "FEETSLOT";
+slotToWowCodes[LBIS.L["Neck"]] = "NECKSLOT";
+slotToWowCodes[LBIS.L["Ring"]] = "FINGER0SLOT,FINGER1SLOT";
+slotToWowCodes[LBIS.L["Trinket"]] = "TRINKET0SLOT,TRINKET1SLOT";
+slotToWowCodes[LBIS.L["Main Hand"]] = "MAINHANDSLOT";
+slotToWowCodes[LBIS.L["Off Hand"]] = "SECONDARYHANDSLOT";
+slotToWowCodes[LBIS.L["Two Hand"]] = "MAINHANDSLOT";
+slotToWowCodes[LBIS.L["Ranged/Relic"]] = "RANGEDSLOT";
+local function IsNotObsolete(specItem)
+    if LBISSettings.HideObsolete then
+        
+        local itemId1, itemId2 = -1, -1;
+
+        if specItem.Slot == "Main Hand/Off Hand" then
+            itemId1 = LBIS.UserSlotCache[slotToWowCodes["Main Hand"]];
+            itemId2 = LBIS.UserSlotCache[slotToWowCodes["Off Hand"]];
+        else
+            local wowCodes = slotToWowCodes[specItem.Slot];
+            local wowCode1, wowCode2 = strsplit(",", wowCodes);
+            itemId1 = LBIS.UserSlotCache[wowCode1];
+            if wowCode2 ~= nil then
+                itemId2 = LBIS.UserSlotCache[wowCode2];
+            end
+        end
+
+        local equippedPhase1 = "6";
+        local equippedPhase2 = "6";
+        if itemId1 ~= nil and tonumber(itemId1) > 0 then
+            if LBIS.ItemsByIdAndSpec[tonumber(itemId1)] ~= nil then
+                local cachedItem1 = LBIS.ItemsByIdAndSpec[tonumber(itemId1)][LBIS.NameToSpecId[LBISSettings.SelectedSpec]];
+                if cachedItem1 ~= nil then
+                    equippedPhase1 = cachedItem1.Phase;
+                end
+            end
+        else
+            --get lowest of other specs?
+        end
+        
+        if itemId2 ~= nil and tonumber(itemId2) > 0 then    
+            if LBIS.ItemsByIdAndSpec[tonumber(itemId2)] ~= nil then    
+                local cachedItem2 = LBIS.ItemsByIdAndSpec[tonumber(itemId2)][LBIS.NameToSpecId[LBISSettings.SelectedSpec]];
+                if cachedItem2 ~= nil then
+                    equippedPhase2 = cachedItem2.Phase;
+                end
+            end
+        else
+            --get lowest of other specs?
+        end
+
+        local _, last1 = LBIS:GetPhaseNumbers(equippedPhase1);
+        local _, last2 = LBIS:GetPhaseNumbers(equippedPhase2);
+        local _, itemPhase = LBIS:GetPhaseNumbers(specItem.Phase);
+
+        local lowestLast = last1;
+        if tonumber(last2) < tonumber(lowestLast) then
+            lowestLast = last2
+        end
+
+        if lowestLast == "6" then
+            lowestLast = "-1"
+        end
+
+        if itemPhase ~= "P" and tonumber(itemPhase) < tonumber(lowestLast) then
+            return false;
+        end
+    end
+    return true;
+end
+
 local function createSourceTypeText(specItemSource)
 
     local function getSourceColor(sourceType)
@@ -178,8 +278,10 @@ local function createSourceTypeText(specItemSource)
             return "|cFFE52AED";
         elseif sourceType == LBIS.L["Transmute"] then
             return "|cFFFC6A03";
-        else
+        elseif sourceType == LBIS.L["Drop"] then
             return "|cFF7727FF";
+        else
+            return "|cFFFFFFFF";
         end
     end
 
@@ -199,7 +301,6 @@ end
 local function createItemRow(f, specItem, specItemSource)
     
     LBIS:GetItemInfo(specItem.Id, function(item)
-        local t, b, d, dl = nil, nil, nil, nil;
         local window = LBIS.BrowserWindow.Window;
 
         if item == nil or item.Id == nil or item.Link == nil or item.Type == nil then
@@ -208,7 +309,7 @@ local function createItemRow(f, specItem, specItemSource)
         end
         --Create Item Button and Text
 
-        b = CreateFrame("Button", nil, f);
+        local b = CreateFrame("Button", nil, f);
         b:SetSize(32, 32);
         local bt = b:CreateTexture();
         bt:SetAllPoints();
@@ -217,7 +318,7 @@ local function createItemRow(f, specItem, specItemSource)
 
         LBIS:SetTooltipOnButton(b, item);
 
-        t = f:CreateFontString(nil, nil, "GameFontNormal");
+        local t = f:CreateFontString(nil, nil, "GameFontNormal");
         t:SetText((item.Link or item.Name):gsub("[%[%]]", ""));
         t:SetPoint("TOPLEFT", b, "TOPRIGHT", 2, -2);
 
@@ -238,13 +339,13 @@ local function createItemRow(f, specItem, specItemSource)
         end
         pt:SetPoint("TOPLEFT", t, "TOPRIGHT", 4, 0);
 
-		d = f:CreateFontString(nil, nil, "GameFontNormal");
+		local d = f:CreateFontString(nil, nil, "GameFontNormal");
 		d:SetText(createSourceTypeText(specItemSource));
 		d:SetJustifyH("LEFT");
 		d:SetWidth(window.ScrollFrame:GetWidth() / 2);
 		d:SetPoint("TOPLEFT", (window.ScrollFrame:GetWidth() / 2), -5);
 
-        dl = f:CreateFontString(nil, nil, "GameFontNormalSmall");
+        local dl = f:CreateFontString(nil, nil, "GameFontNormalSmall");
 
         if specItemSource.SourceType == LBIS.L["Transmute"] then
         
@@ -333,7 +434,7 @@ function LBIS.ItemList:UpdateItems()
             if specItemSource == nil then
                 LBIS:Error("Missing item source: ", specItem);
             else
-                if IsInSlot(specItem) and IsInPhase(specItem, specItemSource) and IsInSource(specItemSource) and IsInZone(specItemSource) and IsNotInClassic(specItemSource) then
+                if IsInFaction(specItemSource) and IsInSlot(specItem) and IsInPhase(specItem, specItemSource) and IsInSource(specItemSource) and IsInZone(specItemSource) and IsNotInClassic(specItemSource) and IsNotObsolete(specItem) then
                     point = LBIS.BrowserWindow:CreateItemRow(specItem, specItemSource, LBISSettings.SelectedSpec.."_"..specItemSource.Name.."_"..specItem.Id, point, createItemRow);
                 end
             end

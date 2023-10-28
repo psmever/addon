@@ -125,7 +125,7 @@ eventHandler.UNIT_HEALTH = function(self)
 
 	InvenRaidFrames3Member_UpdateHealth(self)
 	InvenRaidFrames3Member_UpdateHealPrediction(self)
-	if self.optionTable.outline.type == 4 then
+	if IRF3.db.units.outline.type == 4 then
 		InvenRaidFrames3Member_UpdateOutline(self)
 	end
 end
@@ -153,10 +153,10 @@ eventHandler.UNIT_CONNECTION = eventHandler.UNIT_NAME_UPDATE
 eventHandler.UNIT_FLAGS = eventHandler.UNIT_NAME_UPDATE
 eventHandler.UNIT_FACTION = eventHandler.UNIT_NAME_UPDATE
 eventHandler.UNIT_AURA = function(self)
-	if self.optionTable.outline.type == 1 then
+	if IRF3.db.units.outline.type == 1 then
 		InvenRaidFrames3Member_UpdateOutline(self)
 	end
-	if self.optionTable.useDispelColor then
+	if IRF3.db.units.useDispelColor then
 		InvenRaidFrames3Member_UpdateState(self)
 	end
 end

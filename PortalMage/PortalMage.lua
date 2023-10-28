@@ -15,8 +15,8 @@ portalMageSpells = {["stormwind"] = true,
 					["silvermoon"] = true,
 					["theramore"] = true,
 					["stonard"] = true,
-					["shattrath"] = false,
-					["dalaran"] = false}
+					["shattrath"] = true,
+					["dalaran"] = true}
 
 PortalMage.portals = {["stormwind"] = 10059,
 					  ["orgrimmar"] = 11417,
@@ -685,6 +685,7 @@ function PortalMage.frameOnEvent(self, event, spell)
 		portalRunes = PortalMage:CountItems(17032)
 		self.teleports:SetText(teleportRunes)
 		self.portals:SetText(portalRunes)
+		AdjustReagentDisplay(self)
 	end
 end
 
@@ -733,9 +734,17 @@ function PortalMage:SetupFrame(frame)
 	frame.teleports = frame:CreateFontString(nil, "OVERLAY", "GameFontWhite")
 	frame.teleports:SetTextColor(1, 1, 0)
 	frame.teleports:SetText(teleportRunes)
+	--frame.texture = frame:CreateTexture()
+	--frame.texture:SetTexture("Interface/Tooltips/UI-Tooltip-Background")
+	--frame.texture:SetVertexColor(0, 0, 0, 1)
+	--frame.texture:SetAllPoints(frame.teleports)
 	frame.portals = frame:CreateFontString(nil, "OVERLAY", "GameFontWhite")
 	frame.portals:SetTextColor(0, 1, 0)
 	frame.portals:SetText(portalRunes)
+	--frame.texture = frame:CreateTexture()
+	--frame.texture:SetTexture("Interface/Tooltips/UI-Tooltip-Background")
+	--frame.texture:SetVertexColor(0, 0, 0, 1)
+	--frame.texture:SetAllPoints(frame.portals)
 	if portalMageData.Runes.Portal.show then
 		frame.portals:Show()
 	else
@@ -775,9 +784,12 @@ end
 function PortalMage:CountItems(item)
 	local count = 0
 	for bag = 0 ,NUM_BAG_SLOTS do
-		for slot = 1, GetContainerNumSlots(bag) do --C_Container.GetContainerNumSlots(bag)
-			if item == GetContainerItemID(bag, slot) then --C_Container.GetContainerItemID
-				count = count + (select(2, GetContainerItemInfo(bag, slot)))
+		for slot = 1, C_Container.GetContainerNumSlots(bag) do
+			if item == C_Container.GetContainerItemID(bag, slot) then
+				local info = C_Container.GetContainerItemInfo(bag, slot)
+				if info then
+					count = count + info.stackCount
+				end
 			end
 		end
 	end
@@ -836,24 +848,7 @@ function PortalMage:SetupButtonsVertical(frame, move)
 	move:SetWidth(40)
 	frame:SetHeight(-length)
 	move:SetHeight(-length)
-	frame.portals:ClearAllPoints()
-	frame.teleports:ClearAllPoints()
-	local offset = 15
-	if portalRunes > 9 then
-		offset = offset + 5
-	end
-	if string.find(portalMageData.Runes.Portal.position, "LEFT") then
-		offset = -offset
-	end
-	frame.portals:SetPoint(portalMageData.Runes.Portal.position, offset, 0)
-	offset = 15
-	if teleportRunes > 9 then
-		offset = offset + 5
-	end
-	if string.find(portalMageData.Runes.Teleport.position, "LEFT") then
-		offset = -offset
-	end
-	frame.teleports:SetPoint(portalMageData.Runes.Teleport.position, offset, 0)
+	AdjustReagentDisplay(frame)
 	collectgarbage("collect")
 end
 
@@ -909,25 +904,33 @@ function PortalMage:SetupButtonsHorizontal(frame, move)
 	move:SetWidth(length)
 	frame:SetHeight(40)
 	move:SetHeight(40)
+	AdjustReagentDisplay(frame)
+	collectgarbage("collect")
+end
+
+function AdjustReagentDisplay(frame)
 	frame.portals:ClearAllPoints()
 	frame.teleports:ClearAllPoints()
 	local offset = 15
-	if portalRunes > 9 then
-		offset = offset + 5
+	if portalRunes > 99 then
+		offset = offset + 17
+	elseif portalRunes > 9 then
+		offset = offset + 7
 	end
 	if string.find(portalMageData.Runes.Portal.position, "LEFT") then
 		offset = -offset
 	end
 	frame.portals:SetPoint(portalMageData.Runes.Portal.position, offset, 0)
 	offset = 15
-	if teleportRunes > 9 then
-		offset = offset + 5
+	if teleportRunes > 99 then
+		offset = offset + 17
+	elseif teleportRunes > 9 then
+		offset = offset + 7
 	end
 	if string.find(portalMageData.Runes.Teleport.position, "LEFT") then
 		offset = -offset
 	end
 	frame.teleports:SetPoint(portalMageData.Runes.Teleport.position, offset, 0)
-	collectgarbage("collect")
 end
 
 function PortalMage.buttonOnUpdate(self)
@@ -971,11 +974,11 @@ function PortalMage:SetupButton(button, index, id, icon)
 		button:SetScript("OnEnter", function(self) 
 						PortalMage.frame:SetAlpha(1)
 						GameTooltip_SetDefaultAnchor(GameTooltip, UIParent)
-						GameTooltip:AddLine(L["Right Click:"])
-						GameTooltip:AddSpellByID(self:GetAttribute("spell2"))
-						GameTooltip:AddLine("\n")
 						GameTooltip:AddLine(L["Left Click:"])
 						GameTooltip:AddSpellByID(self:GetAttribute("spell1"))
+						GameTooltip:AddLine("\n")
+						GameTooltip:AddLine(L["Right Click:"])
+						GameTooltip:AddSpellByID(self:GetAttribute("spell2"))
 						GameTooltip:Show()
 						end)
 	else

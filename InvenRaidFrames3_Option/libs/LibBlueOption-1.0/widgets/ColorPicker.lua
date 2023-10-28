@@ -7,7 +7,7 @@ local type = _G.type
 
 local function update(self)
 	self.color.r, self.color.g, self.color.b, self.color.a = self:GetValue()
-	self.color:SetVertexColor(self.color.r, self.color.g, self.color.b, self.color.a or 1)
+	self.color:SetVertexColor(self.color.r or 1, self.color.g or 1, self.color.b or 1, self.color.a or 1)
 end
 
 local function setColor(self)

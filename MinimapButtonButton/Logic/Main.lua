@@ -9,6 +9,8 @@ local hooksecurefunc = _G.hooksecurefunc;
 local IsAltKeyDown = _G.IsAltKeyDown;
 local issecurevariable = _G.issecurevariable;
 
+local SetScale = _G.UIParent.SetScale;
+
 local Constants = addon.import('Logic/Constants');
 local SlashCommands = addon.import('Core/SlashCommands');
 local Utils = addon.import('Core/Utils');
@@ -46,7 +48,7 @@ local function updateLayoutIfVisibilityChanged (frame)
   end
 end
 
-local function collectMinimapButton (button)
+local function collectButton (button)
   -- print('collecting button:', button:GetName());
 
   button:SetParent(buttonContainer);
@@ -68,6 +70,7 @@ local function collectMinimapButton (button)
   button.ClearAllPoints = doNothing;
   button.SetPoint = doNothing;
   button.SetParent = doNothing;
+  button.SetScale = doNothing;
 
   tinsert(collectedButtons, button);
   collectedButtonMap[button] = button:IsShown();
@@ -77,21 +80,31 @@ local function isButtonCollected (button)
   return (collectedButtonMap[button] ~= nil);
 end
 
-local function collectLibDBIconButtons ()
-  local LibStub = _G.LibStub;
-  local LibDBIconStub = LibStub and LibStub('LibDBIcon-1.0');
+local function getLibDBIcon ()
+  return _G.LibStub and _G.LibStub:GetLibrary('LibDBIcon-1.0', true);
+end
 
-  if (not LibDBIconStub) then
+local function collectLibDBIconButton (button)
+  if (not isButtonCollected(button) and
+      not Blacklist.isButtonBlacklisted(button)) then
+    collectButton(button);
+    return true;
+  else
+    return false;
+  end
+end
+
+local function collectLibDBIconButtons ()
+  local LibDBIcon = getLibDBIcon();
+
+  if (not LibDBIcon) then
     return;
   end
 
-  for _, buttonName in ipairs(LibDBIconStub:GetButtonList()) do
-    local button = LibDBIconStub:GetMinimapButton(buttonName);
+  for _, buttonName in ipairs(LibDBIcon:GetButtonList()) do
+    local button = LibDBIcon:GetMinimapButton(buttonName);
 
-    if (not isButtonCollected(button) and
-        not Blacklist.isButtonBlacklisted(button)) then
-      collectMinimapButton(button);
-    end
+    collectLibDBIconButton(button);
   end
 end
 
@@ -125,7 +138,7 @@ local function scanButtonByName (buttonName)
   local button = findButtonByName(buttonName);
 
   if (isValidFrame(button) and not isButtonCollected(button)) then
-    collectMinimapButton(button);
+    collectButton(button);
   end
 end
 
@@ -189,7 +202,7 @@ end
 local function scanMinimapChildren ()
   for _, child in ipairs({Minimap:GetChildren()}) do
     if (shouldButtonBeCollected(child)) then
-      collectMinimapButton(child);
+      collectButton(child);
     end
   end
 end
@@ -202,7 +215,7 @@ local function sortCollectedButtons ()
   sort(collectedButtons, buttonSortFunc);
 end
 
-local function collectMinimapButtons ()
+local function collectMinimapButtonsAndUpdateLayout ()
   local previousCount = #collectedButtons;
 
   collectLibDBIconButtons();
@@ -211,27 +224,54 @@ local function collectMinimapButtons ()
 
   if (#collectedButtons > previousCount) then
     sortCollectedButtons();
+    Layout.updateLayout();
   end
-end
-
-local function collectMinimapButtonsAndUpdateLayout ()
-  collectMinimapButtons();
-  Layout.updateLayout();
 end
 
 --##############################################################################
 -- main button setup
 --##############################################################################
 
+local hideCallback = nil;
+
+local function hideButtons ()
+  options.buttonsShown = false;
+  buttonContainer:Hide();
+end
+
+local function hideButtonsAfterDelay (delay)
+  local function hider ()
+    if (hideCallback == hider) then
+      hideCallback = nil;
+
+      -- Make sure autohide wasn't disabled in the meantime
+      if (options.autohide > 0) then
+        hideButtons();
+      end
+    end
+  end
+
+  hideCallback = hider;
+  C_Timer.After(delay, hider);
+end
+
+local function showButtons ()
+  if (options.autohide > 0) then
+    hideButtonsAfterDelay(options.autohide);
+  else
+    options.buttonsShown = true;
+  end
+
+  buttonContainer:Show();
+end
+
 local function toggleButtons ()
   collectMinimapButtonsAndUpdateLayout();
 
   if (buttonContainer:IsShown()) then
-    options.buttonsShown = false;
-    buttonContainer:Hide();
+    hideButtons();
   else
-    options.buttonsShown = true;
-    buttonContainer:Show();
+    showButtons();
   end
 end
 
@@ -315,7 +355,7 @@ end
 
 local function applyButtonScale ()
   for _, button in ipairs(collectedButtons) do
-    button:SetScale(options.buttonScale);
+    SetScale(button, options.buttonScale);
   end
 
   Layout.updateLayout();
@@ -339,10 +379,26 @@ local function restoreOptions ()
   end
 end
 
+local function hookLibDBIconButtons ()
+  local LibDBIcon = getLibDBIcon();
+
+  if (not LibDBIcon) then
+    return;
+  end
+
+  LibDBIcon.RegisterCallback(addonName, 'LibDBIcon_IconCreated', function (_, button)
+    if (collectLibDBIconButton(button)) then
+      Layout.updateLayout();
+    end
+  end);
+end
+
 local function init ()
   options = addon.import('Logic/Options').getAll();
   restoreOptions();
+
   collectMinimapButtonsAndUpdateLayout();
+  hookLibDBIconButtons();
 end
 
 addon.import('Core/Events').registerEvent('PLAYER_LOGIN', function ()
@@ -353,7 +409,6 @@ addon.import('Core/Events').registerEvent('PLAYER_LOGIN', function ()
   executeAfter(1, collectMinimapButtonsAndUpdateLayout);
   return true;
 end);
-
 
 --##############################################################################
 -- slash commands
@@ -401,6 +456,7 @@ addon.export('Logic/Main', {
   logo = logo,
   collectedButtons = collectedButtons,
   applyScale = applyScale,
+  hideButtons = hideButtons,
   applyButtonScale = applyButtonScale,
   collectMinimapButtonsAndUpdateLayout = collectMinimapButtonsAndUpdateLayout,
   findButtonByName = findButtonByName,

@@ -22,7 +22,30 @@ local function showPing(member, cursor)
 end
 
 function IRF3:UNIT_SPELLCAST_SENT(unit, target, _ , spell )
+local _,GCDleft = GetSpellCooldown(61304)--global cooldown
 
+--	IRF3PartyTarget:SetEnabled(false) --전투중안됨
+--	IRF3RaidTarget:SetEnabled(false)
+
+	IRF3PartyTarget:RegisterForClicks() 
+	IRF3RaidTarget:RegisterForClicks()
+	IRF3RaidTargetMelee:RegisterForClicks()
+
+C_Timer.After(GCDleft,function() 
+ 
+--for k,name in pairs({"IRF3Target","IRF3Focus","IRF3PartyTarget","IRF3PartyFocus","IRF3RaidTarget","IRF3RaidFocus"}) do
+	IRF3PartyTarget:RegisterForClicks(GetCVarBool("ActionButtonUseKeyDown") and "AnyDown" or "AnyUp")
+	IRF3RaidTarget:RegisterForClicks(GetCVarBool("ActionButtonUseKeyDown") and "AnyDown" or "AnyUp")
+	IRF3RaidTargetMelee:RegisterForClicks(GetCVarBool("ActionButtonUseKeyDown") and "AnyDown" or "AnyUp")
+
+--end
+
+
+--시전성공하여 GCD가 돌면 그 다음까진 비활성화됨
+--시전이 실패하여 GCD가 안돌면, 클릭시마다 계속 index가 증가됨(시야,거리,약화된 영혼 케이스등일때 다음 공대원으로 넘어가기 위해)
+
+
+end)
 	if target and UnitExists(target) then
 	
 		if self.db.castingSent ~= 0 then
@@ -41,4 +64,4 @@ function IRF3:UNIT_SPELLCAST_SENT(unit, target, _ , spell )
 	end
 end
 
-IRF3:RegisterEvent("UNIT_SPELLCAST_SENT")
+--IRF3:RegisterEvent("UNIT_SPELLCAST_SENT")

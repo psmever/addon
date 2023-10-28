@@ -52,7 +52,9 @@ GlowMaskPool.parent =  GlowParent
 local TexPoolResetter = function(pool,tex)
     local maskNum = tex:GetNumMaskTextures()
     for i = maskNum,1 do
+	if tex:GetMaskTexture(i) then
         tex:RemoveMaskTexture(tex:GetMaskTexture(i))
+	end
     end
     tex:Hide()
     tex:ClearAllPoints()
@@ -166,7 +168,10 @@ local pCalc2 = function(progress,s,th,p)
     return math.floor(c+0.5)
 end
 
+
 local  pUpdate = function(self,elapsed)
+
+ 
 
     self.timer = self.timer+elapsed/self.info.period
     if self.timer>1 or self.timer <-1 then
@@ -178,6 +183,7 @@ local  pUpdate = function(self,elapsed)
     if width ~= self.info.width or height ~= self.info.height then
         local perimeter = 2*(width+height)
         if not (perimeter>0) then
+
             return
         end
         self.info.width = width
@@ -206,8 +212,11 @@ local  pUpdate = function(self,elapsed)
             [2] = (height+width-self.info.length/2)/perimeter,
             [3] = (height*2+width-self.info.length/2)/perimeter
         }
+
     end
+
     if self:IsShown() then
+
         if not (self.masks[1]:IsShown()) then
             self.masks[1]:Show()
             self.masks[1]:SetPoint("TOPLEFT",self,"TOPLEFT",self.info.th,-self.info.th)

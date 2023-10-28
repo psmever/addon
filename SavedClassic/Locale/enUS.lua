@@ -20,7 +20,9 @@ L["Show minimap icon"] = true
 L["Show info"] = true
 L["per Character"] = true
 L["per Realm"] = true
+L["Show total gold"] = true
 L["Hide info from level under"] = true
+L["Show current chracter first"] = true
 
 L["Tooltip - Character info."] = true
 L["Line 1 of char info."] = true
@@ -37,6 +39,7 @@ L["Desc_Char"] = "|cff00ff00■|r |cffccaa00Keywords for Character info|r|n"
     .."|cffccaa00[cooldown]|r Tradeskill cooldowns|n"
     .."|cffccaa00[dqCom] [dqMax]|r|n"
     .."|cffccaa00[dqReset]|r Time left until DQ reset|n"
+    .."|cffccaa00[gs] [ilvl]|r|n"
     .."|cffccaa00[color/######]|r Color starts(RGB code)|n|cffccaa00[color]|r Color ends|n"
     .."  attach /###### to apply color|n"
     .."|cffffeeaa(ex) |r|cffccaa00[color/ffffff]WHITE[color] =>|r |cffffffffWHITE|r|n   |cffccaa00[item:6265|cffcc3333/cc66cc|r] => |r|cffcc66cc".."|T"..GetItemIcon(6265)..":14:14|t12|r|n"
@@ -81,6 +84,8 @@ L["expRest%"  ] = true
 L["dqCom"     ] = true
 L["dqMax"     ] = true
 L["dqReset"   ] = true
+L["gs"        ] = true
+L["ilvl"      ] = true
 L["instName"  ] = true
 L["instID"    ] = true
 L["difficulty"] = true
@@ -111,6 +116,8 @@ L["IoC"     ] = true
 L["shard"   ] = true
 L["venture" ] = true
 L["justice" ] = true
+L["sidereal"] = true
+L["defilers"] = true
 -- Heroic dungeon names, abbrs
 L["TOK"] = true
 L[ "AN"] = true
@@ -124,8 +131,34 @@ L["Ocu"] = true
 L[ "VH"] = true
 L[ "UK"] = true
 L[ "UP"] = true
-L["ToC"] = true
+L["ToCh"] = "ToC"
 L["HoR"] = true
 L["PoS"] = true
 L["FoS"] = true
+-- Raid abbr. WotLK
+L["Naxx"] = true
+L["OS"]   = true
+L["EoE"]  = true
+L["ULD"]  = true
+L["Ony"]  = true
+L["ToC"]  = true
+L["ICC"]  = true
+L["RS"]   = true
+L["VoA"]  = true
+-- Raid abbr. TBC
+L["SP"] = true
+L["ZA"] = true
+L["BT"] = true
+L["MH"] = true
+L["SC"] = true
+L["TK"] = true
+L["KZ"] = true
+L["GL"] = true
+L["ML"] = true
+-- Raid abbr. Vanilla
+L["AQ"] = true
+L["RA"] = true
+L["ZG"] = true
+L["BW"] = true
+L["MC"] = true
 end

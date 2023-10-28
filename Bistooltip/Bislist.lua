@@ -23,6 +23,8 @@ local phaseDropDown = nil
 
 local checkmarks = {}
 
+local isHorde = UnitFactionGroup("player") == "Horde"
+
 local function createItemFrame(item_id, size, with_checkmark)
     if item_id < 0 then
         local f = AceGUI:Create("Label")
@@ -130,11 +132,16 @@ end
 local function drawItemSlot(slot)
     local f = AceGUI:Create("Label")
     f:SetText(slot.slot_name)
-    f:SetFont("Fonts\\FRIZQT__.TTF", 14)
+    f:SetFont("Fonts\\FRIZQT__.TTF", 14, "")
     spec_frame:AddChild(f)
     spec_frame:AddChild(createEnhancementsFrame(slot.enhs))
     for i, item_id in ipairs(slot) do
-        if item_id~=nil and Bistooltip_char_equipment[item_id] == 1 then
+        if isHorde == true then
+            if Bistooltip_horde_to_ali[item_id] ~= nil then
+                item_id = Bistooltip_horde_to_ali[item_id]
+            end
+        end
+        if item_id ~= nil and Bistooltip_char_equipment[item_id] ~= nil then
             spec_frame:AddChild(createItemFrame(item_id, 40, true))
         else
             spec_frame:AddChild(createItemFrame(item_id, 40))
@@ -145,7 +152,7 @@ end
 local function drawTableHeader(frame)
     local f = AceGUI:Create("Label")
     f:SetText("Slot")
-    f:SetFont("Fonts\\FRIZQT__.TTF", 14)
+    f:SetFont("Fonts\\FRIZQT__.TTF", 14, "")
     local color = 0.6
     f:SetColor(color, color, color)
     frame:AddChild(f)
@@ -164,7 +171,15 @@ local function saveData()
     BistooltipAddon.db.char.phase_index = phase_index
 end
 
+local function clearCheckMarks()
+    for key, value in ipairs(checkmarks) do
+        value:SetTexture(nil)
+    end
+    checkmarks = {}
+end
+
 local function drawSpecData()
+    clearCheckMarks()
     saveData()
     items = {}
     spells = {}
@@ -174,10 +189,6 @@ local function drawSpecData()
         return
     end
     local slots = Bistooltip_bislists[class][spec][phase]
-    for key,value in ipairs(checkmarks) do
-       value:SetTexture(nil)
-    end
-    checkmarks = {}
     for i, slot in ipairs(slots) do
         drawItemSlot(slot)
     end
@@ -336,8 +347,17 @@ function BistooltipAddon:createMainFrame()
     end
     main_frame = AceGUI:Create("Frame")
     main_frame:SetWidth(450)
-    main_frame.frame:SetMinResize(420,300)
+    main_frame.frame:SetResizeBounds(450, 300)
+
+    --main_frame.frame:SetScript("OnKeyDown", function(self, key)
+    --    if key == "ESCAPE" then
+    --        BistooltipAddon:closeMainFrame()
+    --    end
+    --end)
+    --main_frame.frame:SetPropagateKeyboardInput(false)
+
     main_frame:SetCallback("OnClose", function(widget)
+        clearCheckMarks()
         spec_frame = nil
         items = {}
         spells = {}
@@ -361,7 +381,6 @@ function BistooltipAddon:closeMainFrame()
         return
     end
 end
-
 
 function BistooltipAddon:initBislists()
     buildClassDict()

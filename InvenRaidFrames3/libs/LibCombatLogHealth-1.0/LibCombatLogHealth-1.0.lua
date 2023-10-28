@@ -224,6 +224,7 @@ end
 -- end
 
 function callbacks.OnUsed() 
+
     f:RegisterEvent"GROUP_ROSTER_UPDATE"
     f:RegisterEvent"PLAYER_LOGIN"
     f:RegisterEvent"PLAYER_ENTERING_WORLD"
@@ -235,5 +236,6 @@ function callbacks.OnUsed()
 end
 
 function callbacks.OnUnused() 
+
     f:UnregisterAllEvents()
 end

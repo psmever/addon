@@ -19,7 +19,7 @@ Auctionator = {
   Locales = {},
   Config = {},
   Variables = {},
-  Shopping = {},
+  Shopping = { Tab = {}, Lists = {} },
   Cancelling = {},
   Enchant = {},
   Selling = {},
@@ -28,6 +28,7 @@ Auctionator = {
   IncrementalScan = {},
   FullScan = {},
   PostingHistory = {},
+  Groups = {},
 
   Tabs = {
     State = {

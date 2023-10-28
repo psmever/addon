@@ -24,7 +24,12 @@ local iconOrder = {
 	debuffIcon3 = 11,
 	debuffIcon4 = 12,
 	debuffIcon5 = 13,
-	looterIcon = 14
+	debuffIcon6 = 14,
+	debuffIcon7 = 15,
+	debuffIcon8 = 16,
+	debuffIcon9 = 17,
+	debuffIcon10 = 18,
+	looterIcon = 19
 }
 local centerIndex
 
@@ -43,12 +48,18 @@ posTableDefault.debuffIcon2 = posTableDefault.debuffIcon1
 posTableDefault.debuffIcon3 = posTableDefault.debuffIcon1
 posTableDefault.debuffIcon4 = posTableDefault.debuffIcon1
 posTableDefault.debuffIcon5 = posTableDefault.debuffIcon1
+posTableDefault.debuffIcon6 = posTableDefault.debuffIcon1
+posTableDefault.debuffIcon7 = posTableDefault.debuffIcon1
+posTableDefault.debuffIcon8 = posTableDefault.debuffIcon1
+posTableDefault.debuffIcon9 = posTableDefault.debuffIcon1
+posTableDefault.debuffIcon10 = posTableDefault.debuffIcon1
 posTableDefault.buffIcon2 = posTableDefault.buffIcon1
 posTableDefault.buffIcon3 = posTableDefault.buffIcon1
 posTableDefault.buffIcon4 = posTableDefault.buffIcon1
 
 
 local function addIcon(self, icon, pos)
+
 	local leaderIconPos
 	if self[icon] then
 		self[icon]:ClearAllPoints()
@@ -62,18 +73,19 @@ local function addIcon(self, icon, pos)
 				pos = "CENTER"
 			end
 		end
+
 		if iconOrder[icon] and (icon ~= "looterIcon")then
- 
+
 			tinsert(iconTable[pos], icon)
 		else
 			if icon == "looterIcon" then
  
  		 		if pos=="RIGHT" or pos=="TOPRIGHT" or pos =="BOTTOMRIGHT" then
 
-					self[icon]:SetPoint(pos,-self.optionTable.leaderIconSize , 0)
+					self[icon]:SetPoint(pos,-IRF3.db.units.leaderIconSize , 0)
 
 				else
-					self[icon]:SetPoint(pos, self.optionTable.leaderIconSize , 0)
+					self[icon]:SetPoint(pos, IRF3.db.units.leaderIconSize , 0)
 				end
 
 			else
@@ -117,31 +129,42 @@ local function debug(self, ...)
 end
 
 function InvenRaidFrames3Member_SetupIconPos(self)
-
-	addIcon(self, "bossAura", self.optionTable.bossAuraPos)
-	addIcon(self, "roleIcon", self.optionTable.roleIconPos)
-	addIcon(self, "leaderIcon", self.optionTable.leaderIconPos)
-	addIcon(self, "looterIcon", self.optionTable.looterIconPos)
+ 
+	addIcon(self, "bossAura", IRF3.db.units.bossAuraPos)
+	addIcon(self, "roleIcon", IRF3.db.units.roleIconPos)
+	addIcon(self, "leaderIcon", IRF3.db.units.leaderIconPos)
+	addIcon(self, "looterIcon", IRF3.db.units.looterIconPos)
 	
-	addIcon(self, "raidIcon1", self.optionTable.raidIconPos)
-	addIcon(self, "raidIcon2", self.optionTable.raidIconPos)
-	addIcon(self, "healIcon", self.optionTable.healIconPos)
-	addIcon(self, "debuffIcon1", self.optionTable.debuffIconPos)
-	addIcon(self, "debuffIcon2", self.optionTable.debuffIconPos)
-	addIcon(self, "debuffIcon3", self.optionTable.debuffIconPos)
-	addIcon(self, "debuffIcon4", self.optionTable.debuffIconPos)
-	addIcon(self, "debuffIcon5", self.optionTable.debuffIconPos)
-	addIcon(self, "buffIcon1", self.optionTable.buffIconPos)
-	addIcon(self, "buffIcon2", self.optionTable.buffIconPos)
-	addIcon(self, "buffIcon3", self.optionTable.buffIconPos)
-	addIcon(self, "buffIcon4", self.optionTable.buffIconPos)
+	addIcon(self, "raidIcon1", IRF3.db.units.raidIconPos)
+	addIcon(self, "raidIcon2", IRF3.db.units.raidIconPos) 
+
+
+
+
+	addIcon(self, "healIcon", IRF3.db.units.healIconPos)
+	addIcon(self, "debuffIcon1", IRF3.db.units.debuffIconPos)
+	addIcon(self, "debuffIcon2", IRF3.db.units.debuffIconPos)
+	addIcon(self, "debuffIcon3", IRF3.db.units.debuffIconPos)
+	addIcon(self, "debuffIcon4", IRF3.db.units.debuffIconPos)
+	addIcon(self, "debuffIcon5", IRF3.db.units.debuffIconPos)
+	addIcon(self, "debuffIcon6", IRF3.db.units.debuffIconPos)
+	addIcon(self, "debuffIcon7", IRF3.db.units.debuffIconPos)
+	addIcon(self, "debuffIcon8", IRF3.db.units.debuffIconPos)
+	addIcon(self, "debuffIcon9", IRF3.db.units.debuffIconPos)
+	addIcon(self, "debuffIcon10", IRF3.db.units.debuffIconPos)
+	addIcon(self, "buffIcon1", IRF3.db.units.buffIconPos)
+	addIcon(self, "buffIcon2", IRF3.db.units.buffIconPos)
+	addIcon(self, "buffIcon3", IRF3.db.units.buffIconPos)
+	addIcon(self, "buffIcon4", IRF3.db.units.buffIconPos)
 	for i = 1, 15 do
 
 		addIcon(self, "spellTimer"..i, InvenRaidFrames3CharDB.spellTimer[i].pos)
-	end
 
+	end
+ 
 
 	for pos, tbl in pairs(iconTable) do
+
 		if #tbl == 0 then
 			-- noting
 		elseif #tbl == 1 then
@@ -160,6 +183,7 @@ function InvenRaidFrames3Member_SetupIconPos(self)
 			centerIndex = #tbl / 2
 			sort(tbl, sortIcon)
 			for i, icon in ipairs(tbl) do
+
 				if i == centerIndex then
 					self[icon]:SetPoint(fixPoint(pos.."RIGHT"), self, pos, 0, 0)
 				elseif i == (centerIndex + 1) then
@@ -175,13 +199,15 @@ function InvenRaidFrames3Member_SetupIconPos(self)
 			centerIndex = ceil(#tbl / 2)
 			sort(tbl, sortIcon)
 			for i, icon in ipairs(tbl) do
-				if i < centerIndex then
-					self[icon]:SetPoint(fixPoint(pos.."RIGHT"), self[tbl[i + 1]], fixPoint(pos.."LEFT"), 0, 0)
-				elseif i > centerIndex then
-					self[icon]:SetPoint(fixPoint(pos.."LEFT"), self[tbl[i - 1]], fixPoint(pos.."RIGHT"), 0, 0)
-				else
-					self[icon]:SetPoint(pos, 0, 0)
-				end
+
+					if i < centerIndex then
+						self[icon]:SetPoint(fixPoint(pos.."RIGHT"), self[tbl[i + 1]], fixPoint(pos.."LEFT"), 0, 0)
+					elseif i > centerIndex then
+						self[icon]:SetPoint(fixPoint(pos.."LEFT"), self[tbl[i - 1]], fixPoint(pos.."RIGHT"), 0, 0)
+					else
+						self[icon]:SetPoint(pos, 0, 0)
+					end
+
 			end
 		end
 		twipe(tbl)

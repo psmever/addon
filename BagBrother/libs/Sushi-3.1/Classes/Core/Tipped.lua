@@ -1,5 +1,5 @@
 --[[
-Copyright 2008-2022 João Cardoso
+Copyright 2008-2023 João Cardoso
 Sushi is distributed under the terms of the GNU General Public License (or the Lesser GPL).
 This file is part of Sushi.
 
@@ -17,7 +17,7 @@ You should have received a copy of the GNU General Public License
 along with Sushi. If not, see <http://www.gnu.org/licenses/>.
 --]]
 
-local Tipped = LibStub('Sushi-3.1').Callable:NewSushi('Tipped', 1)
+local Tipped = LibStub('Sushi-3.1').Callable:NewSushi('Tipped', 2)
 if not Tipped then return end
 
 
@@ -58,11 +58,11 @@ end
 --[[ API ]]--
 
 function Tipped:SetTooltip(h1, p)
-	self.h1, self.p = h1, p
+	self.tooltipTitle, self.tooltipText = h1, p
 end
 
 function Tipped:GetTooltip()
-	return self.h1, self.p
+	return self.tooltipTitle, self.tooltipText
 end
 
 function Tipped:GetTooltipAnchor()
@@ -71,7 +71,7 @@ function Tipped:GetTooltipAnchor()
 end
 
 
---[[ Proprieties ]]--
+--[[ Properties ]]--
 
 Tipped.SetTip = Tipped.SetTooltip
 Tipped.GetTip = Tipped.GetTooltip

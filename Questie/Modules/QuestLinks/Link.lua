@@ -78,7 +78,7 @@ function QuestieLink:GetQuestHyperLink(questId, senderGUID)
         senderGUID = UnitGUID("player")
     end
 
-    return "|Hquestie:"..questId..":"..senderGUID.."|h"..QuestieLib:PrintDifficultyColor(questLevel, "[", isRepeatable)..coloredQuestName..QuestieLib:PrintDifficultyColor(questLevel, "]", isRepeatable).."|h"
+    return "|Hquestie:"..questId..":"..senderGUID.."|h"..QuestieLib:PrintDifficultyColor(questLevel, "[", isRepeatable, QuestieDB.IsActiveEventQuest(questId), QuestieDB.IsPvPQuest(questId))..coloredQuestName..QuestieLib:PrintDifficultyColor(questLevel, "]", isRepeatable, QuestieDB.IsActiveEventQuest(questId), QuestieDB.IsPvPQuest(questId)).."|h"
 end
 
 function QuestieLink:CreateQuestTooltip(link)
@@ -87,7 +87,7 @@ function QuestieLink:CreateQuestTooltip(link)
         ---@type string
         local questIdStr = select(2, strsplit(":", link))
         local questId = tonumber(questIdStr)
-        local quest = QuestieDB:GetQuest(questId)
+        local quest = QuestieDB.GetQuest(questId)
 
         if quest then
             _AddQuestTitle(quest)
@@ -123,7 +123,7 @@ _AddQuestTitle = function(quest)
 
     local titleColor = "gold"
     if quest.specialFlags == 1 then
-        titleColor = "blizzardBlue"
+        titleColor = "blue"
     end
 
     if Questie.db.global.trackerShowQuestLevel and Questie.db.global.enableTooltipsQuestID then
@@ -169,7 +169,7 @@ _AddQuestDescription = function (quest)
         _AddColoredTooltipLine(quest.Description[1], "white", true)
         if #quest.Description > 2 then
             for i = 2, #quest.Description do
-                _AddTooltipLine(" ")
+                --_AddTooltipLine(" ") -- this is just adding extra lines between text definitions in DB files
                 _AddColoredTooltipLine(quest.Description[i], "white", true)
             end
         end
@@ -356,7 +356,7 @@ hooksecurefunc("ChatFrame_OnHyperlinkShow", function(...)
             Questie:Debug(Questie.DEBUG_DEVELOP, "[QuestieTooltips:OnHyperlinkShow] Relinking Quest Link to chat:", link)
             questId = tonumber(questId)
 
-            local quest = QuestieDB:GetQuest(questId)
+            local quest = QuestieDB.GetQuest(questId)
             if quest then
                 local msg = ChatFrame1EditBox:GetText()
                 if msg then

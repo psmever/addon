@@ -1,4 +1,4 @@
-## Interface: 30400
+## Interface: 30403
 ## Title: Inven Raid Frames 3: Option
 ## Notes: 인벤 레이드 프레임 3: 옵션창
 ## Dependencies: InvenRaidFrames3

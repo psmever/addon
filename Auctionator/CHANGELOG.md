@@ -1,8 +1,7 @@
 # Auctionator
 
-## [10.0.28](https://github.com/Auctionator/Auctionator/tree/10.0.28) (2022-12-25)
-[Full Changelog](https://github.com/Auctionator/Auctionator/compare/10.0.27...10.0.28) 
+## [10.1.33](https://github.com/Auctionator/Auctionator/tree/10.1.33) (2023-10-22)
+[Full Changelog](https://github.com/Auctionator/Auctionator/compare/10.1.32...10.1.33) 
 
-- Alter wording of "Confirm Posting Low Price" tooltip text as requested in #1266  
-- [Fixes #1213] Classic: Buy: Button to abort multiple page query  
-- [Fixes #1312] Mainline: CraftingInfo: Use lowest priced quality option for cost  
+- Selling: Bag/Groups: Cleanup calculations for row width and icon size  
+- [Fixes #1448] Selling: Favourites shown when not in bag even when option off  

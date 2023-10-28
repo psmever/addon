@@ -1,6 +1,6 @@
 local mod	= DBM:NewMod("Quest", "DBM-Outlands")
 
-mod:SetRevision("20230921105810")
+mod:SetRevision("20231027145404")
 mod:SetModelID(18921)
 mod:RegisterEvents(
 	"QUEST_ACCEPTED"

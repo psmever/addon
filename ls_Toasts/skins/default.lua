@@ -65,6 +65,11 @@ E:RegisterSkin("default", {
 		flags = "THINOUTLINE",
 		shadow = false,
 	},
+	icon_text_3 = {
+		color = {1, 1, 1},
+		flags = "THINOUTLINE",
+		shadow = false,
+	},
 	skull = {
 		hidden = false,
 	},
@@ -126,6 +131,22 @@ E:RegisterSkin("default-legacy", {
 			texture = "Interface\\AddOns\\ls_Toasts\\assets\\legacy\\toast-bg-legendary",
 			tex_coords = {1 / 256, 225 / 256, 1 / 64, 49 / 64},
 			tile = false,
+		},
+	},
+})
+
+E:RegisterSkin("default-twotone", {
+	name = "Default (Two Tone)",
+	template = "default",
+	title = {
+		color = {0.15, 0.15, 0.15},
+	},
+	text_bg = {
+		hidden = true,
+	},
+	bg = {
+		default = {
+			texture = "Interface\\AddOns\\ls_Toasts\\assets\\toast-bg-default-as",
 		},
 	},
 })

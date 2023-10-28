@@ -1,5 +1,5 @@
 local function IsEquipment(itemInfo)
-  return itemInfo.classId == Enum.ItemClass.Weapon or itemInfo.classId == Enum.ItemClass.Armor
+  return Auctionator.Utilities.IsEquipment(itemInfo.classId)
 end
 
 local function IsValidItem(item)
@@ -21,24 +21,6 @@ local function GetAmountWithUndercut(amount)
 
   return math.max(0, amount - undercutAmount)
 end
-
-local function FindItemAgain(itemLink)
-  local cleanItemLink = Auctionator.Search.GetCleanItemLink(itemLink)
-  for _, bagID in ipairs(Auctionator.Constants.BagIDs) do
-    for slot = 1, GetContainerNumSlots(bagID) do
-      index = index + 1
-
-      local location = ItemLocation:CreateFromBagAndSlot(bagID, slot)
-      if C_Item.DoesItemExist(location) then
-        local itemInfo = Auctionator.Utilities.ItemInfoFromLocation(location)
-        if Auctionator.Selling.UniqueBagKey(itemInfo) == cleanItemLink then
-          return location
-        end
-      end
-    end
-  end
-end
-
 
 AuctionatorSaleItemMixin = {}
 
@@ -68,7 +50,9 @@ end
 function AuctionatorSaleItemMixin:OnShow()
   Auctionator.EventBus:Register(self, {
     Auctionator.Selling.Events.BagItemClicked,
+    Auctionator.Selling.Events.ClearBagItem,
     Auctionator.Selling.Events.RequestPost,
+    Auctionator.Selling.Events.SkipItem,
     Auctionator.Selling.Events.ConfirmPost,
     Auctionator.Selling.Events.PostSuccessful,
     Auctionator.Selling.Events.PostFailed,
@@ -82,16 +66,29 @@ function AuctionatorSaleItemMixin:OnShow()
 
   SetOverrideBinding(self, false, Auctionator.Config.Get(Auctionator.Config.Options.SELLING_POST_SHORTCUT), "CLICK AuctionatorPostButton:LeftButton")
   SetOverrideBinding(self, false, Auctionator.Config.Get(Auctionator.Config.Options.SELLING_SKIP_SHORTCUT), "CLICK AuctionatorSkipPostingButton:LeftButton")
+  SetOverrideBinding(self, false, Auctionator.Config.Get(Auctionator.Config.Options.SELLING_PREV_SHORTCUT), "CLICK AuctionatorPrevPostingButton:LeftButton")
 
   self:UpdateSkipButton()
   self:Reset()
+
+  if Auctionator.Config.Get(Auctionator.Config.Options.SELLING_SHOULD_RESELECT_ITEM) then
+    local key = Auctionator.Config.Get(Auctionator.Config.Options.SELLING_RESELECT_ITEM)
+    if key ~= nil then
+      self.lastKey = key
+      Auctionator.EventBus:Fire(
+        self, Auctionator.Selling.Events.BagItemRequest, key
+      )
+    end
+  end
 end
 
 function AuctionatorSaleItemMixin:OnHide()
   Auctionator.EventBus:Unregister(self, {
     Auctionator.Selling.Events.BagItemClicked,
+    Auctionator.Selling.Events.ClearBagItem,
     Auctionator.Selling.Events.RequestPost,
     Auctionator.Selling.Events.ConfirmPost,
+    Auctionator.Selling.Events.SkipItem,
     Auctionator.Selling.Events.PostSuccessful,
     Auctionator.Selling.Events.PostFailed,
     Auctionator.Buying.Events.ViewSetup,
@@ -100,6 +97,7 @@ function AuctionatorSaleItemMixin:OnHide()
     Auctionator.Buying.Events.HistoricalPrice,
     Auctionator.Components.Events.EnterPressed,
   })
+  Auctionator.Config.Set(Auctionator.Config.Options.SELLING_RESELECT_ITEM, self.lastKey)
   Auctionator.EventBus:UnregisterSource(self)
   self:UnlockItem()
   ClearOverrideBindings(self)
@@ -157,22 +155,31 @@ function AuctionatorSaleItemMixin:UpdatePrices()
 end
 
 function AuctionatorSaleItemMixin:OnUpdate()
+  GetOwnerAuctionItems(0)
+  if self.itemInfo == nil then
+    return
+
+  elseif self.itemInfo.count == 0 and self.clickedSellItem then
+    return
+
+  elseif self.itemInfo.location ~= nil and not C_Item.DoesItemExist(self.itemInfo.location) then
+    local itemInfo = Auctionator.Groups.Utilities.QueryItem(self.itemInfo.key.sortKey)
+    self.itemInfo.location = itemInfo and itemInfo.locations[1]
+    -- Bag position changes (race condition or posting reattempt)
+    if not self.itemInfo.location then
+      self.itemInfo = nil
+      self:Reset()
+      return
+    else
+      self.clickedSellItem = false
+    end
+  end
+
   if not self.clickedSellItem then
     self:SellItemClick()
     return
-
-  elseif self.itemInfo == nil then
-    return
-
-  elseif self.itemInfo.count == 0 then
-    return
-
-  elseif not C_Item.DoesItemExist(self.itemInfo.location) then
-    --Bag item location invalid due to posting (race condition)
-    self.itemInfo = nil
-    self:Reset()
-    return
   end
+
 
   self:UpdatePrices()
 
@@ -232,14 +239,15 @@ function AuctionatorSaleItemMixin:SellItemClick()
   -- Remove any item already selected in the Auctions frame, as if it is the
   -- same as the item we're trying to add it will cause the add to fail.
   ClickAuctionSellItemButton()
-  if C_Cursor.GetCursorItem() then
-    Auctionator.Debug.Message("some sell item already selected")
-    ClearCursor()
-  end
+  ClearCursor()
 
   if IsValidItem(self.itemInfo) then
     if self.itemInfo.location:IsBagAndSlot() then
-      PickupContainerItem(self.itemInfo.location:GetBagAndSlot())
+      if C_Container and C_Container.PickupContainerItem then
+        C_Container.PickupContainerItem(self.itemInfo.location:GetBagAndSlot())
+      else
+        PickupContainerItem(self.itemInfo.location:GetBagAndSlot())
+      end
     else
       PickupInventoryItem(self.itemInfo.location:GetEquipmentSlot())
     end
@@ -280,12 +288,15 @@ function AuctionatorSaleItemMixin:ReceiveEvent(event, ...)
     self.clickedSellItem = false
 
     self.itemInfo = itemInfo
+    self.nextItem = self.itemInfo and self.itemInfo.nextItem
+    self.prevItem = self.itemInfo and self.itemInfo.prevItem
+    self.lastKey = self.itemInfo and self.itemInfo.key
 
     if self.itemInfo ~= nil and self.itemInfo.stackSize == nil then
       self.itemInfo = nil
 
       local item
-      if itemInfo.location ~= nil then
+      if IsValidItem(itemInfo) then
         item = Item:CreateFromItemLocation(itemInfo.location)
       else
         item = Item:CreateFromItemLink(itemInfo.itemLink)
@@ -300,6 +311,13 @@ function AuctionatorSaleItemMixin:ReceiveEvent(event, ...)
     end
     self:Update()
 
+  elseif event == Auctionator.Selling.Events.ClearBagItem then
+    self.nextItem = nil
+    self.prevItem = nil
+    self.lastKey = nil
+    self:Reset()
+    Auctionator.EventBus:Fire(self, Auctionator.Selling.Events.StopFakeBuyLoading)
+
   elseif event == Auctionator.AH.Events.ThrottleUpdate then
     self:UpdatePostButtonState()
 
@@ -312,6 +330,9 @@ function AuctionatorSaleItemMixin:ReceiveEvent(event, ...)
 
   elseif event == Auctionator.Selling.Events.ConfirmPost then
     self:PostItem(true)
+
+  elseif event == Auctionator.Selling.Events.SkipItem then
+    self:SkipItem()
 
   elseif event == Auctionator.Components.Events.EnterPressed then
     self:PostItem()
@@ -329,7 +350,7 @@ function AuctionatorSaleItemMixin:ReceiveEvent(event, ...)
       end
       self:SetUnitPrice(unitPrice)
       -- Used to check if the undercut is more than 50% below configured setting
-      self.priceThreshold = unitPrice * 0.5
+      self.priceCutThreshold = unitPrice * 0.5
     end
   elseif event == Auctionator.Buying.Events.HistoricalPrice and
          self.itemInfo ~= nil then
@@ -338,7 +359,11 @@ function AuctionatorSaleItemMixin:ReceiveEvent(event, ...)
   elseif event == Auctionator.Selling.Events.PostSuccessful then
     local details = ...
     self:SuccessfulPost(details)
-    self:DoNextItem(details)
+    if Auctionator.Config.Get(Auctionator.Config.Options.SELLING_POST_STACK_REMAINDER) and (details.itemInfo.count - details.numStacks * details.stackSize) < details.stackSize then
+      self:ReselectItem(details)
+    else
+      self:DoNextItem(details)
+    end
   elseif event == Auctionator.Selling.Events.PostFailed then
     local details = ...
     if details.numStacksReached > 0 then
@@ -368,8 +393,6 @@ function AuctionatorSaleItemMixin:UpdateVisuals()
 
   if self.itemInfo ~= nil then
     self:SetItemName()
-
-    self.Icon:HideCount()
 
   else
     -- No item, reset all the visuals
@@ -410,7 +433,7 @@ function AuctionatorSaleItemMixin:UpdateForNewItem()
 
   self:SetQuantity()
 
-  self.priceThreshold = nil
+  self.priceCutThreshold = nil
 
   if not self.retryingItem then
     self.buyViewSetup = false
@@ -447,14 +470,43 @@ function AuctionatorSaleItemMixin:UpdateForNoItem()
   self.TotalPrice:SetText(GetMoneyString(0))
 end
 
+local groupDurationToRadioDuration = {
+  [1] = 12,
+  [2] = 24,
+  [3] = 48,
+}
 function AuctionatorSaleItemMixin:SetDuration()
+  if self.itemInfo.groupName then
+    local groupSettings = Auctionator.Config.Get(Auctionator.Config.Options.SELLING_GROUPS_SETTINGS)[self.itemInfo.groupName]
+    if groupSettings and groupSettings.duration and groupSettings.duration ~= 0 then
+      self.Duration:SetSelectedValue(groupDurationToRadioDuration[groupSettings.duration])
+      return
+    end
+  end
+
   self.Duration:SetSelectedValue(
     Auctionator.Config.Get(Auctionator.Config.Options.AUCTION_DURATION)
   )
 end
 
 function AuctionatorSaleItemMixin:SetQuantity()
-  local defaultStacks = Auctionator.Config.Get(Auctionator.Config.Options.DEFAULT_SELLING_STACKS)
+  local defaultStacks = CopyTable(Auctionator.Config.Get(Auctionator.Config.Options.DEFAULT_SELLING_STACKS))
+
+  local preferredStackSize = Auctionator.Config.Get(Auctionator.Config.Options.STACK_SIZE_MEMORY)[Auctionator.Utilities.BasicDBKeyFromLink(self.itemInfo.itemLink)]
+
+  if self.itemInfo.groupName then
+    local groupSettings = Auctionator.Config.Get(Auctionator.Config.Options.SELLING_GROUPS_SETTINGS)[self.itemInfo.groupName]
+    if groupSettings then
+      for key, value in pairs(groupSettings) do
+        if value ~= 0 then
+          defaultStacks[key] = value
+        end
+      end
+      if groupSettings.stackSize ~= 0 then
+        preferredStackSize = groupSettings.stackSize
+      end
+    end
+  end
 
   -- Determine what the stack size would be without using stack size memory.
   -- This is used to clear stack size memory when the max/min is used
@@ -464,24 +516,24 @@ function AuctionatorSaleItemMixin:SetQuantity()
     self.normalStackSize = math.min(defaultStacks.stackSize, self.itemInfo.stackSize)
   end
 
-  local previousStackSize = Auctionator.Config.Get(Auctionator.Config.Options.STACK_SIZE_MEMORY)[Auctionator.Utilities.BasicDBKeyFromLink(self.itemInfo.itemLink)]
-
-  if previousStackSize ~= nil then
-    self.Stacks.StackSize:SetNumber(math.min(self.itemInfo.count, previousStackSize))
+  if preferredStackSize ~= nil then
+    self.Stacks.StackSize:SetNumber(math.min(self.itemInfo.count, preferredStackSize))
   else
-    self.Stacks.StackSize:SetNumber(self.normalStackSize)
+    self.Stacks.StackSize:SetNumber(math.min(self.normalStackSize, self.itemInfo.count))
   end
 
   local numStacks = math.floor(self.itemInfo.count/self.Stacks.StackSize:GetNumber())
-  if previousStackSize ~= nil and previousStackSize ~= 0 then
-    numStacks = math.floor(self.itemInfo.count/previousStackSize)
+  if preferredStackSize ~= nil then
+    numStacks = math.floor(self.itemInfo.count/preferredStackSize)
   end
 
   if numStacks == 0 then
     numStacks = 1
   end
 
-  if defaultStacks.numStacks == 0 then
+  if self.itemInfo.count == 0 then
+    self.Stacks.NumStacks:SetNumber(0)
+  elseif defaultStacks.numStacks == 0 then
     self.Stacks.NumStacks:SetNumber(numStacks)
   else
     self.Stacks.NumStacks:SetNumber(math.min(numStacks, defaultStacks.numStacks))
@@ -492,7 +544,9 @@ end
 
 function AuctionatorSaleItemMixin:DisplayMaxNumStacks()
   local numStacks = math.floor(self.itemInfo.count / self:GetStackSize())
-  if numStacks == 0 or self:GetStackSize() == 0 then
+  if self:GetStackSize() == 0 then
+    numStacks = 0
+  elseif numStacks == 0 then
     numStacks = 1
   end
 
@@ -515,7 +569,7 @@ function AuctionatorSaleItemMixin:SetUnitPrice(salesPrice)
   self.StackPrice:SetAmount(self.UnitPrice:GetAmount() * self.Stacks.StackSize:GetNumber())
   self.BidPrice:SetAmount(self:GetAutoBidAmount())
 
-  self.priceThreshold = nil
+  self.priceCutThreshold = nil
 
   self.prevStackSize = self.Stacks.StackSize:GetNumber()
   self.prevUnitPrice = self.UnitPrice:GetAmount()
@@ -536,14 +590,6 @@ function AuctionatorSaleItemMixin:SetEquipmentMultiplier(itemLink)
       )
     end
   end)
-end
-
-function AuctionatorSaleItemMixin:GetCommodityResult(itemId)
-  if C_AuctionHouse.GetCommoditySearchResultsQuantity(itemId) > 0 then
-    return C_AuctionHouse.GetCommoditySearchResultInfo(itemId, 1)
-  else
-    return nil
-  end
 end
 
 function AuctionatorSaleItemMixin:GetPostButtonState()
@@ -567,15 +613,46 @@ function AuctionatorSaleItemMixin:GetPostButtonState()
     self.Stacks.NumStacks:GetNumber() * self.Stacks.StackSize:GetNumber() <= self.itemInfo.count and
 
     -- Positive price
-    self.UnitPrice:GetAmount() > 0 and
+    (
+      self.UnitPrice:GetAmount() > 0 or
+      self.BidPrice:GetAmount() > 0
+    ) and
 
     -- Have opted to ignore the throttle or searches on the client aren't throttled
     (not Auctionator.Config.Get(Auctionator.Config.Options.SELLING_GREY_POST_BUTTON) or Auctionator.AH.IsNotThrottled())
 end
 
+function AuctionatorSaleItemMixin:GetStackableWarningThreshold()
+  -- Limit warning to stackable items only (like the retail warning on
+  -- commodities)
+  if self.itemInfo.stackSize <= 1 then
+    return 0
+  end
+
+  -- Identifies when an auction is skewing the current price down and is
+  -- probably not meant to be so low.
+  local watchPoint = self:GetParent().BuyFrame.CurrentPrices.SearchDataProvider.allAuctions[5] or self:GetParent().BuyFrame.CurrentPrices.SearchDataProvider.allAuctions[1]
+  if watchPoint ~= nil then
+    local watchPointPrice = Auctionator.Utilities.ToUnitPrice(watchPoint) or 0
+    return Auctionator.Utilities.PriceWarningThreshold(watchPointPrice)
+  end
+  return 0
+end
+
 function AuctionatorSaleItemMixin:GetConfirmationMessage()
-  if self.priceThreshold ~= nil and self.UnitPrice:GetAmount() < self.priceThreshold then
+  local effectiveUnitPrice = self.UnitPrice:GetAmount()
+  if Auctionator.Config.Get(Auctionator.Config.Options.SHOW_SELLING_BID_PRICE) and effectiveUnitPrice == 0 then
+    effectiveUnitPrice = math.ceil(self.BidPrice:GetAmount() / self:GetStackSize())
+  end
+  -- Check if the price may have had the unit and stack price entered in the
+  -- wrong box with the item being underpriced compared to the on sale items
+  if self.priceCutThreshold ~= nil and effectiveUnitPrice < self.priceCutThreshold then
     return AUCTIONATOR_L_CONFIRM_POST_PRICE_DROP:format(GetMoneyString(self.UnitPrice:GetAmount(), true))
+  end
+
+  -- Check if the item was underpriced compared to the currently on sale items
+  if effectiveUnitPrice < self:GetStackableWarningThreshold() then
+    return AUCTIONATOR_L_CONFIRM_POST_LOW_PRICE:format(GetMoneyString(self.UnitPrice:GetAmount(), true))
   end
 
   -- Determine if the item is worth more to sell to a vendor than to post on the
@@ -583,8 +660,8 @@ function AuctionatorSaleItemMixin:GetConfirmationMessage()
   local itemInfo = { GetItemInfo(self.itemInfo.itemLink) }
   local vendorPrice = itemInfo[Auctionator.Constants.ITEM_INFO.SELL_PRICE]
   if Auctionator.Utilities.IsVendorable(itemInfo) and
-     vendorPrice * self:GetStackSize() * self:GetNumStacks() + self:GetDeposit()
-       > math.floor(self.StackPrice:GetAmount() * self:GetNumStacks() * Auctionator.Constants.AfterAHCut) then
+     vendorPrice * self:GetStackSize() * self:GetNumStacks()
+       > math.floor(effectiveUnitPrice * self:GetStackSize() * self:GetNumStacks() * Auctionator.Constants.AfterAHCut) then
     return AUCTIONATOR_L_CONFIRM_POST_BELOW_VENDOR
   end
 end
@@ -600,7 +677,8 @@ function AuctionatorSaleItemMixin:UpdatePostButtonState()
 end
 
 function AuctionatorSaleItemMixin:UpdateSkipButtonState()
-  self.SkipButton:SetEnabled(self.SkipButton:IsShown() and IsValidItem(self.itemInfo and self.itemInfo.nextItem))
+  self.SkipButton:SetEnabled(self.SkipButton:IsShown() and self.nextItem)
+  self.PrevButton:SetEnabled(self.SkipButton:IsShown() and self.prevItem)
 end
 
 local AUCTION_DURATIONS = {
@@ -618,8 +696,13 @@ function AuctionatorSaleItemMixin:PostItem(confirmed)
     Auctionator.Debug.Message("Trying to post when we can't. Returning")
     return
   elseif not confirmed and self:RequiresConfirmationState() then
-    StaticPopupDialogs[Auctionator.Constants.DialogNames.SellingConfirmPost].text = self:GetConfirmationMessage()
-    StaticPopup_Show(Auctionator.Constants.DialogNames.SellingConfirmPost)
+    if self.SkipButton:IsEnabled() then
+      StaticPopupDialogs[Auctionator.Constants.DialogNames.SellingConfirmPostSkip].text = self:GetConfirmationMessage()
+      StaticPopup_Show(Auctionator.Constants.DialogNames.SellingConfirmPostSkip)
+    else
+      StaticPopupDialogs[Auctionator.Constants.DialogNames.SellingConfirmPost].text = self:GetConfirmationMessage()
+      StaticPopup_Show(Auctionator.Constants.DialogNames.SellingConfirmPost)
+    end
     return
   end
 
@@ -690,55 +773,60 @@ function AuctionatorSaleItemMixin:SuccessfulPost(details)
       for _, key in ipairs(dbKeys) do
         Auctionator.Database:SetPrice(key, minPrice)
       end
+      Auctionator.EventBus:Fire(self, Auctionator.Selling.Events.RefreshHistoryOnly, details.itemInfo)
     end)
+  else
+    Auctionator.EventBus:Fire(self, Auctionator.Selling.Events.RefreshHistoryOnly, details.itemInfo)
   end
 end
 
 function AuctionatorSaleItemMixin:DoNextItem(details)
-  if (Auctionator.Config.Get(Auctionator.Config.Options.SELLING_AUTO_SELECT_NEXT) and
-      IsValidItem(details.itemInfo.nextItem)
-     ) then
+  if Auctionator.Config.Get(Auctionator.Config.Options.SELLING_AUTO_SELECT_NEXT) and self.nextItem then
     -- Option to automatically select the next item in the bag view
     Auctionator.EventBus:Fire(
-      self, Auctionator.Selling.Events.BagItemClicked, details.itemInfo.nextItem
+      self, Auctionator.Selling.Events.BagItemRequest, self.nextItem
     )
   end
 end
 
 function AuctionatorSaleItemMixin:ReselectItem(details)
-  if IsValidItem(details.itemInfo) then
-    Auctionator.Debug.Message("got the item ready to try again")
-    self.retryingItem = true
-    self.itemInfo = details.itemInfo
-    self.clickedSellItem = false
-    self.minPriceSeen = details.minPriceSeen
-    self:Update()
-    self:SetUnitPrice(details.unitPrice)
-    self.Stacks.NumStacks:SetNumber(details.numStacks - details.numStacksReached)
-  else
-    local location = FindItemAgain(self.itemInfo.itemLink)
-    if self.itemInfo.location ~= nil then
+  -- estimate count as the bag may not have updated to remove the posted items
+  -- yet
+  local count = details.itemInfo.count - details.stackSize * details.numStacksReached
+  if count > 0 then
+    local itemInfo = Auctionator.Groups.Utilities.QueryItem(details.itemInfo.key.sortKey)
+    if itemInfo then
       Auctionator.Debug.Message("found again, trying")
+      self:UnlockItem()
       self.retryingItem = true
       self.itemInfo = CopyTable(details.itemInfo, true)
-      self.itemInfo.location = location
-      self.itemInfo.count = Auctionator.Selling.GetItemCount(self.itemInfo.location)
+      self.itemInfo.location = itemInfo.locations[1]
+      self.itemInfo.count = count
       self.clickedSellItem = false
       self.minPriceSeen = details.minPriceSeen
       self:Update()
       self:SetUnitPrice(details.unitPrice)
-      self.Stacks.NumStacks:SetNumber(details.numStacks - details.numStacksReached)
-    else
-      Auctionator.Debug.Message("item missing, won't retry")
-      self:DoNextItem(details)
+      self.Stacks.NumStacks:SetNumber(math.max(1, details.numStacks - details.numStacksReached))
+      return
     end
   end
+
+  Auctionator.Debug.Message("item missing, won't retry")
+  self:DoNextItem(details)
 end
 
 function AuctionatorSaleItemMixin:SkipItem()
   if self.SkipButton:IsEnabled() then
     Auctionator.EventBus:Fire(
-      self, Auctionator.Selling.Events.BagItemClicked, self.itemInfo.nextItem
+      self, Auctionator.Selling.Events.BagItemRequest, self.nextItem
+    )
+  end
+end
+
+function AuctionatorSaleItemMixin:PrevItem()
+  if self.PrevButton:IsEnabled() then
+    Auctionator.EventBus:Fire(
+      self, Auctionator.Selling.Events.BagItemRequest, self.prevItem
     )
   end
 end

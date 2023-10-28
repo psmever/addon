@@ -1,1 +1,1 @@
-- Added button scale setting
+- Updated interface version for Wrath

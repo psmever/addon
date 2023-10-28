@@ -1,3 +1,4 @@
+local owner = {}
 local function SelectOwnItem(self)
   ClearCursor()
 
@@ -5,29 +6,26 @@ local function SelectOwnItem(self)
 
   if not C_Item.DoesItemExist(itemLocation) then
     return
-  else
-    local currentDurability, maxDurability = GetContainerItemDurability(self:GetParent():GetID(), self:GetID())
-    if currentDurability ~= maxDurability then
-      UIErrorsFrame:AddMessage(ERR_AUCTION_REPAIR_ITEM, 1.0, 0.1, 0.1, 1.0)
-      return
-    elseif not Auctionator.Utilities.IsAtMaxCharges(itemLocation) then
-      UIErrorsFrame:AddMessage(ERR_AUCTION_USED_CHARGES, 1.0, 0.1, 0.1, 1.0)
-      return
-    elseif C_Item.IsBound(itemLocation) then
-      UIErrorsFrame:AddMessage(ERR_AUCTION_BOUND_ITEM, 1.0, 0.1, 0.1, 1.0)
-      return
-    end
   end
 
+  local itemLink = C_Item.GetItemLink(itemLocation)
+
   AuctionatorTabs_Selling:Click()
-
-  local itemInfo = Auctionator.Utilities.ItemInfoFromLocation(itemLocation)
-  itemInfo.count = Auctionator.Selling.GetItemCount(itemLocation)
-
-  Auctionator.EventBus
-    :RegisterSource(self, "ContainerFrameItemButton_On.*Click hook")
-    :Fire(self, Auctionator.Selling.Events.BagItemClicked, itemInfo)
-    :UnregisterSource(self)
+  Auctionator.EventBus:RegisterSource(owner, "SellingTabBagHooks")
+  Auctionator.Groups.CallbackRegistry:RegisterCallback("BagCacheUpdated", function(_, cache)
+    Auctionator.Groups.CallbackRegistry:UnregisterCallback("BagCacheUpdated", owner)
+    Auctionator.Groups.CallbackRegistry:TriggerEvent("BagCacheOff")
+    cache:CacheLinkInfo(itemLink, function()
+      local info = Auctionator.Groups.Utilities.ToPostingItem(AuctionatorBagCacheFrame:GetByLinkInstant(itemLink, true))
+      if info.location then
+        info.location = itemLocation
+        Auctionator.EventBus:Fire(owner, Auctionator.Selling.Events.BagItemClicked, info)
+      else
+        Auctionator.Selling.ShowCannotSellReason(itemLocation)
+      end
+    end)
+  end, owner)
+  Auctionator.Groups.CallbackRegistry:TriggerEvent("BagCacheOn")
 end
 
 local function AHShown()

@@ -3,6 +3,7 @@ local Option = IRF3.optionFrame
 local LBO = LibStub("LibBlueOption-1.0")
 local L = LibStub("AceLocale-3.0"):GetLocale("IRF3")
 local pairs = _G.pairs
+local SL = IRF3.GetSpellName
 
 function Option:CreateAggroMenu(menu, parent)
 	local function update(member)
@@ -10,6 +11,9 @@ function Option:CreateAggroMenu(menu, parent)
 			InvenRaidFrames3Member_UpdateDisplayText(member)
 		end
 	end
+
+
+
 	menu.arrow = LBO:CreateWidget("CheckBox", parent, L["lime_func_1"], L["lime_func_desc_1"], nil, nil, true,
 		function()
 			return IRF3.db.units.useAggroArrow
@@ -20,6 +24,18 @@ function Option:CreateAggroMenu(menu, parent)
 		end
 	)
 	menu.arrow:SetPoint("TOPLEFT", 5, 5)
+
+	menu.namecolor = LBO:CreateWidget("CheckBox", parent, L["lime_func_1_3"], L["lime_func_desc_1_2"], nil, nil, true,
+		function()
+			return IRF3.db.units.useAggroNameColor
+		end,
+		function(v)
+			IRF3.db.units.useAggroNameColor = v
+			Option:UpdateMember(update)
+		end
+	)
+	menu.namecolor:SetPoint("TOPLEFT", menu.arrow, "TOPRIGHT", 5,0)
+
 
 	menu.detailcolor = LBO:CreateWidget("CheckBox", parent, L["lime_func_1_1"], L["lime_func_desc_1_1"], nil, nil, true,
 		function()
@@ -100,6 +116,10 @@ function Option:CreateOutlineMenu(menu, parent)
 	local function disable()
 		return IRF3.db.units.outline.type == 0
 	end
+
+	 
+
+
 	menu.scale = LBO:CreateWidget("Slider", parent, L["lime_func_6"].."(%)", L["lime_func_desc_6"], nil, disable, true,
 		function() return IRF3.db.units.outline.scale * 100, 50, 150, 1  end,
 		function(v)
@@ -194,36 +214,51 @@ function Option:CreateRangeMenu(menu, parent)
 			end
 		end
 	end
+
+	local function updateName(member)
+ 
+		if member:IsVisible() then
+ 
+			InvenRaidFrames3Member_UpdateNameColor(member)
+		end
+	end
+
 	menu.outrange = LBO:CreateWidget("Slider", parent, L["lime_func_16"].."(%)", L["lime_func_desc_17"], nil, nil, true,
 		function()
 			return IRF3.db.units.fadeOutAlpha * 100, 0, 100, 1 
 		end,
 		function(v)
 			IRF3.db.units.fadeOutAlpha = v / 100
-			Option:UpdateMember(update)
+			Option:UpdateMember(updateName)
+
 		end
 	)
 	menu.outrange:SetPoint("TOPLEFT", 5, -10)
+
+--[[ 외형-이름-에 동일한 기능있음
 	menu.outRangeName = LBO:CreateWidget("CheckBox", parent, L["lime_func_16_1"],L["lime_func_desc_16_1"] , nil, nil, true,
 		function()
 			return IRF3.db.units.outRangeName
 		end,
 		function(v)
 			IRF3.db.units.outRangeName = v
-			Option:UpdateMember(update)
+			Option:UpdateMember(updateName)
+			
 		end
 	)
 	menu.outRangeName:SetPoint("TOP", menu.outrange, "BOTTOM", 0, -5)
+
+--]]
 	menu.mana = LBO:CreateWidget("CheckBox", parent, L["lime_func_17"], L["lime_func_desc_18"], nil, nil, true,
 		function()
-			return IRF3.db.units.fadeOutOfRangePower
+			return IRF3.db.units.fadeOutOfRangeHealth
 		end,
 		function(v)
-			IRF3.db.units.fadeOutOfRangePower = v
-			Option:UpdateMember(update)
+			IRF3.db.units.fadeOutOfRangeHealth = v
+			Option:UpdateMember(updateName) 
 		end
 	)
-	menu.mana:SetPoint("TOP", menu.outRangeName, "BOTTOM", 0, 0)
+	menu.mana:SetPoint("TOP", menu.outrange, "BOTTOM", 0, 0)
 
 	menu.outRangeName2 = LBO:CreateWidget("CheckBox", parent, L["lime_func_18"], L["lime_func_19"], nil, nil, true,
 		function()
@@ -231,7 +266,8 @@ function Option:CreateRangeMenu(menu, parent)
 		end,
 		function(v)
 			IRF3.db.units.outRangeName2 = v
-			Option:UpdateMember(update)
+			Option:UpdateMember(updateName)
+
 		end
 	)
 	menu.outRangeName2:SetPoint("TOP", menu.mana, "BOTTOM", 0, 0)
@@ -287,7 +323,7 @@ function Option:CreateLostHealthMenu(menu, parent)
 		function(v)
 			IRF3.db.units.nameEndl = v
 			Option:UpdateMember(IRF3.headers[0].members[1].SetupPowerBar)
-			Option:UpdateMember(IRF3.tankheaders[0].members[1].SetupPowerBar)
+			Option:UpdateMember(IRF3.tankheaders.members[1].SetupPowerBar)
 			Option:UpdateMember(update)
 			Option:UpdatePreview()
 		end
@@ -459,10 +495,11 @@ function Option:CreateSpellTimerMenu(menu, parent)
 	end
 	local function setUse(v, id)
 		InvenRaidFrames3CharDB.spellTimer[id].use = v - 1
+		IRF3:BuildSpellTimerList()
 		Option:UpdateMember(update)
 		LBO:Refresh(parent)
-		IRF3:BuildSpellTimerList()
 		IRF3:UpdateSpellTimerFont()
+		IRF3:SetupSpellTimerYn()--버프사용여부 체크
 	end
 	local function disable(id)
 		return InvenRaidFrames3CharDB.spellTimer[id].use == 0
@@ -490,6 +527,19 @@ function Option:CreateSpellTimerMenu(menu, parent)
 		IRF3:UpdateSpellTimerFont()
 
 	end
+	local function getfontsize(id)
+		return InvenRaidFrames3CharDB.spellTimer[id].fontsize,5,20,1
+
+
+	end
+	local function setfontsize(v, id)
+
+		InvenRaidFrames3CharDB.spellTimer[id].fontsize = v
+		Option:UpdateMember(update)
+		IRF3:BuildSpellTimerList()
+		IRF3:UpdateSpellTimerFont()
+	end
+
 	local function getScale(id)
 		return InvenRaidFrames3CharDB.spellTimer[id].scale * 100, 50, 150, 1
 	end
@@ -499,6 +549,26 @@ function Option:CreateSpellTimerMenu(menu, parent)
 		IRF3:BuildSpellTimerList()
 		IRF3:UpdateSpellTimerFont()
 	end
+
+
+	local function getFadeIn(id)
+		return InvenRaidFrames3CharDB.spellTimer[id].FadeIn
+	end
+	local function setFadeIn(v, id)
+		InvenRaidFrames3CharDB.spellTimer[id].FadeIn=v
+
+	end
+	
+
+	local function getSpellTimerType1(id)
+		return InvenRaidFrames3CharDB.spellTimer[id].enableSpellTimerType1
+	end
+	local function setSpellTimerType1(v, id)
+		InvenRaidFrames3CharDB.spellTimer[id].enableSpellTimerType1=v
+
+	end
+
+
 	local function getName(id)
 		return InvenRaidFrames3CharDB.spellTimer[id].name or ""
 	end
@@ -511,32 +581,130 @@ function Option:CreateSpellTimerMenu(menu, parent)
 
 	end
 
-	for i, info in ipairs(InvenRaidFrames3CharDB.spellTimer) do
+--고급옵션
+--[[개별설정으로 변경됨
+	menu.enableFadeIn = LBO:CreateWidget("CheckBox", parent, L["주문 타이머 동적 표시"], L["주문 타이머 동적 표시desc"], nil, nil, true,
+		function() return IRF3.db.enableFadeIn end,
+		function(v)
+			IRF3.db.enableFadeIn = v
+			
+		end
+	)
+	menu.enableFadeIn:SetPoint("TOPLEFT", 5, -5)
+]]--
+--	menu.enableFadeIn:SetPoint("TOP", menu.addonsLink, "BOTTOM", 0, 0)
+--[[
+	menu.FadeInFrequency = LBO:CreateWidget("Slider", parent, L["주문 타이머 주기"], L["주문 타이머 주기desc"], nil, nil, true,
+		function() return IRF3.db.FadeInFrequency, 1, 10, 1, "" end,
+		function(v)
+			IRF3.db.FadeInFrequency = v
 
+		end
+	)
+menu.FadeInFrequency:SetPoint("LEFT", menu.enableFadeIn, "RIGHT", 10, 0)
+
+]]--
+
+
+--[[
+	menu.enableSpellTimerType1 = LBO:CreateWidget("CheckBox", parent, L["주문 타이머 폰트 겹치기"], L["주문 타이머 폰트 겹치기desc"], nil, nil, true,
+		function() return IRF3.db.enableSpellTimerType1 end,
+		function(v)
+			IRF3.db.enableSpellTimerType1 = v
+			IRF3:UpdateSpellTimerFont()
+			IRF3:UpdateSpellTimerWidth()
+		end
+	)
+--	menu.enableSpellTimerType1:SetPoint("TOPLEFT", menu.enableFadeIn, "TOPRIGHT", 0, 0)
+	menu.enableSpellTimerType1:SetPoint("TOPLEFT", 5, -5)
+]]--
+	menu.SpellTimerFontColor = LBO:CreateWidget("ColorPicker", parent, L["주문 타이머 폰트 색상"], L["주문 타이머 폰트 색상desc"], nil, nil, true,
+		function() return IRF3.db.units.SpellTimerFontColor[1], IRF3.db.units.SpellTimerFontColor[2], IRF3.db.units.SpellTimerFontColor[3] end,
+		function(r, g, b)
+			IRF3.db.units.SpellTimerFontColor[1], IRF3.db.units.SpellTimerFontColor[2], IRF3.db.units.SpellTimerFontColor[3] = r, g, b
+			IRF3:UpdateSpellTimerFont()
+
+		end
+	)
+--	menu.SpellTimerFontColor:SetPoint("TOP", menu.enableSpellTimerType1, "BOTTOM", 0, 0)
+	menu.SpellTimerFontColor:SetPoint("TOPLEFT", 5, -5)
+
+	menu.SpellTimerOtherFontColor = LBO:CreateWidget("ColorPicker", parent, L["주문 타이머 폰트 색상_타인"], L["주문 타이머 폰트 색상_타인desc"], nil, nil, true,
+		function() return IRF3.db.units.SpellTimerOtherFontColor[1], IRF3.db.units.SpellTimerOtherFontColor[2], IRF3.db.units.SpellTimerOtherFontColor[3] end,
+		function(r, g, b)
+			IRF3.db.units.SpellTimerOtherFontColor[1], IRF3.db.units.SpellTimerOtherFontColor[2], IRF3.db.units.SpellTimerOtherFontColor[3] = r, g, b
+			IRF3:UpdateSpellTimerFont()
+
+		end
+	)
+	menu.SpellTimerOtherFontColor:SetPoint("LEFT", menu.SpellTimerFontColor, "RIGHT", 0, 0)
+
+
+
+	menu.SpellTimerCountColor = LBO:CreateWidget("ColorPicker", parent, L["주문 타이머 중첩 색상"], L["주문 타이머 중첩 색상desc"], nil, nil, true,
+		function() return IRF3.db.units.SpellTimerCountColor[1], IRF3.db.units.SpellTimerCountColor[2], IRF3.db.units.SpellTimerCountColor[3] end,
+		function(r, g, b)
+			IRF3.db.units.SpellTimerCountColor[1], IRF3.db.units.SpellTimerCountColor[2], IRF3.db.units.SpellTimerCountColor[3] = r, g, b
+			IRF3:UpdateSpellTimerFont()
+
+		end
+	)
+	menu.SpellTimerCountColor:SetPoint("LEFT", menu.SpellTimerOtherFontColor, "RIGHT", 0, 0)
+ 
+
+
+--
+	for i, info in ipairs(InvenRaidFrames3CharDB.spellTimer) do
+		if i<16 then --16이상은 공대생존기 아이콘용으로 사용(hidden)
 		menu["use"..i] = LBO:CreateWidget("DropDown", parent, L["lime_func_spelltimer_2"]..i, L["lime_func_spelltimer_2"]..i..L["lime_func_spelltimer_3"], nil, nil, true, getUse, setUse, i)
 		if i == 1 then
-			menu["use"..i]:SetPoint("TOP", 0, -5)
+--			menu["use"..i]:SetPoint("TOP", 0, -5)
+			menu["use"..i]:SetPoint("TOP", menu.SpellTimerFontColor, "BOTTOM", 0, -10)
 		else
-			menu["use"..i]:SetPoint("TOP", menu["name"..(i - 1)], "BOTTOM", 0, -20)
+			menu["use"..i]:SetPoint("TOP", menu["name"..(i - 1)], "BOTTOM", 0, -40)
 		end
 		menu["use"..i]:SetPoint("LEFT", 5, 0)
 		menu["pos"..i] = LBO:CreateWidget("DropDown", parent, L["위치"], L["lime_func_spelltimer_2"]..i..L["lime_func_spelltimer_4"], nil, disable, true, getPos, setPos, i)
-		menu["pos"..i]:SetPoint("TOP", menu["use"..i], "TOP", 0, 0)
-		menu["pos"..i]:SetPoint("RIGHT", -5, 0)
+		menu["pos"..i]:SetPoint("TOPLEFT", menu["use"..i], "TOPRIGHT", 0, 0)
+		menu["pos"..i]:SetWidth(100)
+--		menu["pos"..i]:SetPoint("RIGHT", -100, 0)
 		menu["display"..i] = LBO:CreateWidget("DropDown", parent, L["표시 방식"], L["lime_func_spelltimer_2"]..i..L["lime_func_spelltimer_5"], nil, disable, true, getDisplay, setDisplay, i)
-		menu["display"..i]:SetPoint("TOP", menu["use"..i], "BOTTOM", 0, -5)
+--		menu["display"..i]:SetPoint("TOP", menu["use"..i], "BOTTOM", 0, -5)
+		menu["display"..i]:SetPoint("TOPLEFT", menu["pos"..i], "TOPRIGHT", 0, 0)
 		menu["scale"..i] = LBO:CreateWidget("Slider", parent, L["크기"].."(%)", L["lime_func_spelltimer_2"]..i..L["lime_func_spelltimer_6"], nil, disable, true, getScale, setScale, i)
-		menu["scale"..i]:SetPoint("TOP", menu["pos"..i], "BOTTOM", 0, -5)
+--		menu["scale"..i]:SetPoint("TOPLEFT", menu["pos"..i], "TOPRIGHT", 0, -5)
+		menu["scale"..i]:SetPoint("TOP", menu["use"..i], "BOTTOM", 0, -5)
+		menu["scale"..i]:SetWidth(120)
+
+		menu["fontsize"..i] = LBO:CreateWidget("Slider", parent, L["글꼴"]..L["크기"].."(".. L["픽셀"] ..")", L["lime_func_other_26_3"], nil, disable, true,getfontsize,setfontsize,i)
+		menu["fontsize"..i]:SetPoint("TOPLEFT",menu["scale"..i],"TOPRIGHT",0,0)
+		menu["fontsize"..i]:SetWidth(120)
+
+		menu["fadein"..i] =  LBO:CreateWidget("CheckBox", parent, L["주문 타이머 동적 표시"], L["주문 타이머 동적 표시desc"], nil, disable, true,getFadeIn,setFadeIn,i)
+--		menu["fadein"..i]:SetPoint("TOPLEFT",menu["display"..i],"TOPRIGHT",0,-5)
+--		menu["fadein"..i]:SetPoint("TOPLEFT",menu["scale"..i],"TOPRIGHT",0,-5)
+		menu["fadein"..i]:SetPoint("TOPLEFT",menu["fontsize"..i],"TOPRIGHT",0,-5)
+		menu["fadein"..i]:SetWidth(100)
+
+		menu["spelltimertype1"..i] =  LBO:CreateWidget("CheckBox", parent, L["주문 타이머 폰트 겹치기"], L["주문 타이머 폰트 겹치기desc"], nil, disable, true,getSpellTimerType1,setSpellTimerType1,i)
+		menu["spelltimertype1"..i]:SetPoint("TOPLEFT",menu["fadein"..i],"TOPRIGHT",0,0)
+		menu["spelltimertype1"..i]:SetWidth(100)
+
 		menu["name"..i] = LBO:CreateWidget("EditBox", parent, L["버프/디버프 이름"], L["lime_func_spelltimer_2"]..i..L["lime_func_spelltimer_7"], nil, disable, true, getName, setName, i)
 		menu["name"..i].title:ClearAllPoints()
 		menu["name"..i].title:SetPoint("TOP", 0, -3)
+
+
 		menu["name"..i].box:ClearAllPoints()
 		menu["name"..i].box:SetPoint("TOP", menu["name"..i].title, "BOTTOM", 0, -7)
 		menu["name"..i].box:SetPoint("LEFT", 0, 0)
 		menu["name"..i].box:SetPoint("RIGHT", 0, 0)
-		menu["name"..i]:SetPoint("TOP", menu["display"..i], "BOTTOM", 0, -5)
+
+
+		menu["name"..i]:SetPoint("TOP", menu["scale"..i], "BOTTOM", 0, -5)
 		menu["name"..i]:SetPoint("LEFT", 5, 0)
 		menu["name"..i]:SetPoint("RIGHT", -5, 0)
+		end
 	end
 end
 
@@ -553,8 +721,10 @@ function Option:CreateSurvivalSkillMenu(menu, parent)
 		end,
 		function(v)
 			IRF3.db.units.useSurvivalSkill = v
+			IRF3:BuildSpellTimerList()
 			LBO:Refresh(parent)
 			Option:UpdateMember(update)
+
 		end
 	)
 	menu.use:SetPoint("TOPLEFT", 5, 0)
@@ -594,6 +764,422 @@ function Option:CreateSurvivalSkillMenu(menu, parent)
 		end
 	)
 	menu.potion:SetPoint("TOP", menu.timer, "BOTTOM", 0, 5)
+
+	menu.showIcon = LBO:CreateWidget("CheckBox", parent, L["lime_func2_4_1"], L["lime_func2_desc_4_1"], nil, function() return not IRF3.db.units.useSurvivalSkill end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellTimer
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellTimer = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+			IRF3:SetupSpellTimerYn()--버프사용여부 체크
+
+		end
+	)
+	menu.showIcon:SetPoint("TOP", menu.sub, "BOTTOM", 0, 5)
+
+
+	local function getPos(id)
+		return Option.dropdownTable["아이콘변환"][InvenRaidFrames3CharDB.spellTimer[id].pos], Option.dropdownTable["아이콘"]
+	end
+	local function setPos(v, id)
+
+		InvenRaidFrames3CharDB.spellTimer[id].pos = Option.dropdownTable["아이콘변환"][v]
+		Option:UpdateIconPos()
+	
+
+	end
+ 
+
+	local function getScale(id)
+		return InvenRaidFrames3CharDB.spellTimer[id].scale * 100, 50, 150, 1
+	end
+	local function setScale(v, id)
+
+		InvenRaidFrames3CharDB.spellTimer[id].scale = v / 100
+		Option:UpdateMember(update)
+		IRF3:BuildSpellTimerList()
+		IRF3:UpdateSpellTimerFont()
+	end
+
+		menu["pos"] = LBO:CreateWidget("DropDown", parent, L["위치"], L["생존기 표시"]..L["lime_func_spelltimer_4"], nil, disable, true, getPos, setPos, 16)--16번째부터 생존기아이콘(주문타이머16)으로 사용하므로
+		menu["pos"]:SetPoint("TOPLEFT", menu["showIcon"], "BOTTOMLEFT", 0, 0)
+
+		menu["scale"] = LBO:CreateWidget("Slider", parent, L["크기"].."(%)", L["생존기 표시"]..L["lime_func_spelltimer_6"], nil, disable, true, getScale, setScale, 16)--16번째부터 생존기아이콘(주문타이머16)으로 사용하므로
+		menu["scale"]:SetPoint("TOPLEFT", menu["pos"], "TOPRIGHT", 0, -5)
+
+	
+--방벽/최저/속도/마폭/그망/소멸/얼방/보축/희축/고억
+--SL(871)..","..SL(12975)..","..SL(53908)..","..SL(53909)..","..SL(31224)..","..SL(11327)..","..SL(45438)..","..SL(1022)..","..SL(6940)..","..SL(33206)
+
+--생본/껍질/대보/얼인/불굴/흡혈/수호/자극/무적
+--SL(61336)..","..SL(22812)..","..SL(48707)..","..SL(48792)..","..SL(51271)..","..SL(55233)..","..SL(47788)..","..SL(29166)..","..SL(642)
+
+--오숙(별도처리),오숙용 기타오라
+
+
+--방벽 SL(871)
+	menu.showIcon1 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("WARRIOR"))..SL(871),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[1]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[1] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon1:SetPoint("TOP", menu.pos, "BOTTOM", 0, 0)
+
+--최저SL(12975)
+	menu.showIcon2 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("WARRIOR"))..SL(12975),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[2]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[2] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon2:SetPoint("TOPLEFT", menu.showIcon1, "TOPRIGHT", 0, 0)
+
+
+--그망SL(31224) 
+	menu.showIcon3 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("ROGUE"))..SL(31224) ,"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[3]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[3] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon3:SetPoint("TOPLEFT", menu.showIcon2, "TOPRIGHT", 0, 0)
+
+--소멸SL(11327)
+	menu.showIcon4 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("ROGUE"))..SL(11327),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[4]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[4] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon4:SetPoint("TOPLEFT", menu.showIcon1, "BOTTOMLEFT", 0, 0)
+
+--얼방SL(45438)
+	menu.showIcon5 = LBO:CreateWidget("CheckBox", parent,"|c"..select(4,GetClassColor("MAGE")).. SL(45438),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[5]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[5] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon5:SetPoint("TOPLEFT", menu.showIcon4, "TOPRIGHT", 0, 0)
+
+
+--보축SL(1022)
+	menu.showIcon6 = LBO:CreateWidget("CheckBox", parent,"|c"..select(4,GetClassColor("PALADIN")).. SL(1022),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[6]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[6] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon6:SetPoint("TOPLEFT", menu.showIcon5, "TOPRIGHT", 0, 0)
+--희축SL(6940)
+	menu.showIcon7 = LBO:CreateWidget("CheckBox", parent,"|c"..select(4,GetClassColor("PALADIN")).. SL(6940),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[7]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[7] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon7:SetPoint("TOPLEFT", menu.showIcon4, "BOTTOMLEFT", 0, 0)
+--천상의 보호막SL(642)
+	menu.showIcon8 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("PALADIN"))..SL(642),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[8]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[8] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon8:SetPoint("TOPLEFT", menu.showIcon7, "TOPRIGHT", 0, 0)
+--천수SL(70940)
+	menu.showIcon9 = LBO:CreateWidget("CheckBox", parent,"|c"..select(4,GetClassColor("PALADIN")).. SL(70940),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[9]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[9] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon9:SetPoint("TOPLEFT", menu.showIcon8, "TOPRIGHT", 0, 0)
+--오숙SL(31821)
+
+	menu.showIcon10 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("PALADIN"))..SL(31821),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[10]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[10] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon10:SetPoint("TOPLEFT", menu.showIcon7, "BOTTOMLEFT", 0, 0)
+
+--신의 가호SL(498) --23번
+	menu.showIcon23 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("PALADIN"))..SL(498),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[23]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[23] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon23:SetPoint("TOPLEFT", menu.showIcon10, "TOPRIGHT", 0, 0)
+
+
+--고억SL(33206)
+	menu.showIcon11 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("PRIEST"))..SL(33206),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[11]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[11] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon11:SetPoint("TOPLEFT", menu.showIcon23, "TOPRIGHT", 0, 0)
+--수호SL(47788)
+	menu.showIcon12 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("PRIEST"))..SL(47788),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[12]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[12] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon12:SetPoint("TOPLEFT", menu.showIcon10, "BOTTOMLEFT", 0, 0)
+
+--천상의 찬가SL(64844)
+	menu.showIcon24 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("PRIEST"))..SL(64844).."/"..SL(64904),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[24]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[24] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon24:SetPoint("TOPLEFT", menu.showIcon12, "TOPRIGHT", 0, 0)
+
+
+
+
+--생본SL(61336)
+	menu.showIcon13 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("DRUID"))..SL(61336),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[13]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[13] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon13:SetPoint("TOPLEFT", menu.showIcon24, "TOPRIGHT", 0, 0)
+
+--껍질SL(22812)
+	menu.showIcon14 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("DRUID"))..SL(22812),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[14]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[14] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon14:SetPoint("TOPLEFT", menu.showIcon12, "BOTTOMLEFT", 0, 0)
+
+--자극SL(29166)
+	menu.showIcon15 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("DRUID"))..SL(29166),"", nil, function() return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[15]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[15] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon15:SetPoint("TOPLEFT", menu.showIcon14, "TOPRIGHT", 0, 0)
+
+
+--대보SL(48707)
+	menu.showIcon16 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("DEATHKNIGHT"))..SL(48707),"", nil, function()   return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[16]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[16] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon16:SetPoint("TOPLEFT", menu.showIcon15, "TOPRIGHT", 0, 0)
+--얼인SL(48792)
+	menu.showIcon17 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("DEATHKNIGHT"))..SL(48792),"", nil, function()   return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[17]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[17] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon17:SetPoint("TOPLEFT", menu.showIcon14, "BOTTOMLEFT", 0, 0)
+--불굴SL(51271)
+	menu.showIcon18 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("DEATHKNIGHT"))..SL(51271),"", nil, function()   return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[18]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[18] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon18:SetPoint("TOPLEFT", menu.showIcon17, "TOPRIGHT", 0, 0)
+
+--흡혈SL(55233)
+	menu.showIcon19 = LBO:CreateWidget("CheckBox", parent, "|c"..select(4,GetClassColor("DEATHKNIGHT"))..SL(55233),"", nil, function()  return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[19]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[19] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon19:SetPoint("TOPLEFT", menu.showIcon18, "TOPRIGHT", 0, 0)
+--속도SL(53908)
+	menu.showIcon20 = LBO:CreateWidget("CheckBox", parent, SL(53908),"", nil, function()  return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[20]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[20] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon20:SetPoint("TOPLEFT", menu.showIcon17, "BOTTOMLEFT", 0, 0)
+--마폭SL(53909)
+	menu.showIcon21 = LBO:CreateWidget("CheckBox", parent, SL(53909),"", nil, function()  return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[21]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[21] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon21:SetPoint("TOPLEFT", menu.showIcon20, "TOPRIGHT", 0, 0)
+
+--파괴불가능SL(53762)
+	menu.showIcon22 = LBO:CreateWidget("CheckBox", parent, SL(53762),"", nil, function()  return not (IRF3.db.units.useSurvivalSkill and IRF3.db.units.showSurvivalAsSpellTimer) end, true,
+		function()
+			return IRF3.db.units.showSurvivalAsSpellIcon[22]
+		end,
+		function(v)
+			IRF3.db.units.showSurvivalAsSpellIcon[22] = v
+			IRF3:BuildSpellTimerList()			
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.showIcon22:SetPoint("TOPLEFT", menu.showIcon21, "TOPRIGHT", 0, 0)
+
+
 end
 
 function Option:CreateHealPredictionMenu(menu, parent)
@@ -606,12 +1192,36 @@ function Option:CreateHealPredictionMenu(menu, parent)
 		member.otherHealPredictionBar:SetStatusBarColor(IRF3.db.units.otherHealPredictionColor[1], IRF3.db.units.otherHealPredictionColor[2], IRF3.db.units.otherHealPredictionColor[3], IRF3.db.units.healPredictionAlpha)
 		member.otherHoTPredictionBar:SetStatusBarColor(IRF3.db.units.otherHoTPredictionColor[1], IRF3.db.units.otherHoTPredictionColor[2], IRF3.db.units.otherHoTPredictionColor[3], IRF3.db.units.healPredictionAlpha)
 		member.absorbPredictionBar:SetStatusBarColor(IRF3.db.units.AbsorbPredictionColor[1], IRF3.db.units.AbsorbPredictionColor[2], IRF3.db.units.AbsorbPredictionColor[3], IRF3.db.units.healPredictionAlpha)
+
+		if IRF3.db.units.AbsorbInClassictype ==2 then--우측바
+			if (self.overAbsorb or 0 )>0 then 	member.overAbsorbGlow:Show() end
+			if member.outlineAbsorb then
+			member.outlineAbsorb:Hide()
+			member.outlineAbsorb:SetAlpha(0)
+			end
+		elseif IRF3.db.units.AbsorbInClassictype ==3 then --테두리
+			member.overAbsorbGlow:Hide()
+			if member.outlineAbsorb and  (self.overAbsorb  or 0)>0 then 
+			member.outlineAbsorb:Show()
+			member.outlineAbsorb:SetAlpha(1)
+			end
+		else
+			member.overAbsorbGlow:Hide()
+			if member.outlineAbsorb then
+			member.outlineAbsorb:Hide()
+			member.outlineAbsorb:SetAlpha(0)
+			end
+		end
+
+
 		if member:IsVisible() then
 			InvenRaidFrames3Member_UpdateHealPrediction(member)
 		end
 		if member.petButton then
 			update(member.petButton)
 		end
+
+
 	end
 	menu.use = LBO:CreateWidget("CheckBox", parent, L["lime_func2_5"], L["lime_func2_desc_5"], nil, nil, true,
 		function()
@@ -623,6 +1233,7 @@ function Option:CreateHealPredictionMenu(menu, parent)
 			IRF3.db.units.displayHealPrediction = v
 			LBO:Refresh(parent)
 			Option:UpdateMember(update)
+			IRF3:SetupLib()
 			
 		end
 	)
@@ -684,6 +1295,7 @@ function Option:CreateHealPredictionMenu(menu, parent)
 	)
 menu.size:SetPoint("TOP", menu.otherIcon, "BOTTOM", 0, 0)
 
+--[[
 	menu.showhealers = LBO:CreateWidget("CheckBox", parent, L["lime_func2_18"], L["lime_func2_desc_18"], nil, disable, true,
 		function() return IRF3.db.units.showhealers end,
 		function(v)
@@ -693,7 +1305,7 @@ menu.size:SetPoint("TOP", menu.otherIcon, "BOTTOM", 0, 0)
 		end
 	)
 	menu.showhealers:SetPoint("TOP", menu.pos, "BOTTOM", 0, 0)
-
+]]--
 
 -----치유 아이콘 제거
 
@@ -713,7 +1325,7 @@ menu.size:SetPoint("TOP", menu.otherIcon, "BOTTOM", 0, 0)
 			Option:UpdateMember(update)
 		end
 	)
-	menu.myColor:SetPoint("TOP", menu.showhealers, "BOTTOM", 0, 0)
+	menu.myColor:SetPoint("TOP", menu.pos, "BOTTOM", 0, 0)
 
 	menu.otherColor = LBO:CreateWidget("ColorPicker", parent, L["lime_func2_12"], L["lime_func2_desc_12"], nil, disable, true,
 		function() return IRF3.db.units.otherHealPredictionColor[1], IRF3.db.units.otherHealPredictionColor[2], IRF3.db.units.otherHealPredictionColor[3] end,
@@ -755,10 +1367,40 @@ menu.size:SetPoint("TOP", menu.otherIcon, "BOTTOM", 0, 0)
 		end
 	)
 	menu.AbsorbColor:SetPoint("TOP", menu.myHoTColor, "BOTTOM", 0, 0)
+
+
+	menu.useAbsorbInClassic = LBO:CreateWidget("CheckBox", parent, L["lime_func2_19"], L["lime_func2_desc_19"], nil, disable, true,
+		function()
+
+			return IRF3.db.units.useAbsorbInClassic
+		end,
+		function(v)
+
+			IRF3.db.units.useAbsorbInClassic = v
+			LBO:Refresh(parent)
+			Option:UpdateMember(update)
+			IRF3:SetupLib()
+			
+		end
+	)
+	menu.useAbsorbInClassic:SetPoint("TOP", menu.otherHoTColor,"BOTTOM",0,0)
+	local typeList = { L["사용 안함"],L["우측바"],L["외곽선"] }
+	menu.AbsorbInClassictype = LBO:CreateWidget("DropDown", parent, L["lime_func2_20"] , L["lime_func2_desc_20"], nil, disable, true,
+		function()
+			return IRF3.db.units.AbsorbInClassictype, typeList
+		end,
+		function(v)
+			IRF3.db.units.AbsorbInClassictype = v
+			Option:UpdateMember(update)
+
+		end
+	)
+	menu.AbsorbInClassictype:SetPoint("TOPLEFT", menu.useAbsorbInClassic, "BOTTOMLEFT", 0, 0)
+
  
 	menu.library1 = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	menu.library1:SetText(L["lime_func2_desc_16"])
-	menu.library1:SetPoint("TOPLEFT", menu.AbsorbColor,"BOTTOMLEFT" , 0)
+	menu.library1:SetPoint("TOPLEFT", menu.AbsorbColor,"BOTTOMLEFT" , 0,-60)
 
 	menu.library2 = parent:CreateFontString(nil, "OVERLAY", "GameFontNormalLarge")
 	menu.library2:SetText(L["lime_func2_desc_17"] )
@@ -906,12 +1548,14 @@ end
 function Option:CreateDebuffIconMenu(menu, parent)
 	local function update(member)
 		if member:IsVisible() then
+			
 			InvenRaidFrames3Member_UpdateAura(member)
+			InvenRaidFrames3Member_SetAuraFont(member)
 		end
 	end
 	menu.num = LBO:CreateWidget("Slider", parent, L["lime_func_aura_14"] , L["lime_func_aura_15"], nil, disable, true,
 		function()
-			return IRF3.db.units.debuffIcon, 0, 5, 1 
+			return IRF3.db.units.debuffIcon, 0, 10, 1 
 		end,
 		function(v)
 			IRF3.db.units.debuffIcon = v
@@ -943,6 +1587,9 @@ function Option:CreateDebuffIconMenu(menu, parent)
 		end
 	)
 	menu.size:SetPoint("TOP", menu.num, "BOTTOM", 0, -10)
+
+
+
 	local typeList = { L["lime_func_button_27"], L["lime_func_button_23"], L["색상"] }
 	menu.type = LBO:CreateWidget("DropDown", parent, L["lime_func_aura_18"], L["lime_func_aura_19"], nil, disable, true,
 		function()
@@ -950,11 +1597,42 @@ function Option:CreateDebuffIconMenu(menu, parent)
 		end,
 		function(v)
 			IRF3.db.units.debuffIconType = v
-			Option:UpdateMember(IRF3.headers[0].members[1].SetupDebuffIcon)
-			Option:UpdateMember(IRF3.tankheaders[0].members[1].SetupDebuffIcon)
+--			Option:UpdateMember(IRF3.headers[0].members[1].SetupDebuffIcon)
+--			Option:UpdateMember(IRF3.tankheaders.members[1].SetupDebuffIcon)
+			Option:UpdateMember(update)
+
 		end
 	)
 	menu.type:SetPoint("TOP", menu.pos, "BOTTOM", 0, -10)
+
+
+
+
+	menu.fontsize = LBO:CreateWidget("Slider", parent, L["글꼴"]..L["크기"].."(".. L["픽셀"] ..")", L["lime_func_other_26_3"], nil, disable, true,
+		function()
+			return IRF3.db.units.debuffIconFontSize, 4, 20, 1 
+		end,
+		function(v)
+			IRF3.db.units.debuffIconFontSize = v
+			Option:UpdateMember(update)
+		end
+	)
+	menu.fontsize:SetPoint("TOP", menu.size, "BOTTOM", 0, 0)
+
+
+	local timertypeList = { L["lime_func_aura_39"], L["lime_func_button_29"] }
+	menu.timertype = LBO:CreateWidget("DropDown", parent, L["lime_func_aura_18_1"], L["lime_func_aura_19_1"], nil, disable, true,
+		function()
+			return IRF3.db.units.debuffIconTimerType, timertypeList
+		end,
+		function(v)
+			IRF3.db.units.debuffIconTimerType = v
+			Option:UpdateMember(IRF3.headers[0].members[1].SetupDebuffIcon)
+			Option:UpdateMember(IRF3.tankheaders.members[1].SetupDebuffIcon)
+		end
+	)
+	menu.timertype:SetPoint("TOP", menu.type, "BOTTOM", 0, 0)
+
 	local function getDebuff(debuff)
 		return IRF3.db.units.debuffIconFilter[debuff]
 	end
@@ -967,7 +1645,7 @@ function Option:CreateDebuffIconMenu(menu, parent)
 	for i, color in ipairs(colorList) do
 		menu["color"..i] = LBO:CreateWidget("CheckBox", parent, colorLocale[i]..L["lime_func_aura_20"], colorLocale[i]..L["lime_func_aura_21"], nil, disable, true, getDebuff, setDebuff, color)
 		if i == 1 then
-			menu["color"..i]:SetPoint("TOP", menu.size, "BOTTOM", 0, 0)
+			menu["color"..i]:SetPoint("TOP", menu.fontsize, "BOTTOM", 0, 0)
 		elseif i == 2 then
 			menu["color"..i]:SetPoint("TOP", menu.color1, 0, 0)
 			menu["color"..i]:SetPoint("RIGHT", -5, 0)
@@ -1531,13 +2209,14 @@ function Option:CreateRaidTargetMenu(menu, parent)
 		end,
 		function(v)
 			IRF3.db.units.raidIconPos = Option.dropdownTable["아이콘변환"][v]
+
 			Option:UpdateIconPos()
 		end
 	)
 	menu.pos:SetPoint("TOP", menu.use, "BOTTOM", 0, 10)
 	menu.scale = LBO:CreateWidget("Slider", parent, L["lime_func_other_18"].."(".. L["픽셀"] ..")", L["lime_func_other_19"], nil, disable, true,
 		function()
-			return IRF3.db.units.raidIconSize, 8, 24, 1 
+			return IRF3.db.units.raidIconSize, 8, 60, 1 
 		end,
 		function(v)
 			IRF3.db.units.raidIconSize = v
@@ -1577,9 +2256,43 @@ function Option:CreateRaidTargetMenu(menu, parent)
 end
 
 function Option:CreateCastingBarMenu(menu, parent)
+	local function getUnitPetOrOwner(unit)
+		if unit then
+			if unit == "player" then
+				return "pet"
+			elseif unit == "vehicle" or unit == "pet" then
+				return "player"
+			elseif unit:find("pet") then
+				return (unit:gsub("pet", ""))
+			else
+				return (unit:gsub("(%d+)", "pet%1"))
+			end
+		end
+		return nil
+	end
 	local function update(member)
 		if member:IsVisible() then
-			InvenRaidFrames3Member_UpdateCastingBar(member)
+
+			if IRF3.db.units.useCastingBar then
+				key=getUnitPetOrOwner(member.unit)
+				member:RegisterUnitEvent("UNIT_SPELLCAST_START", member.unit , key)
+				member:RegisterUnitEvent("UNIT_SPELLCAST_STOP", member.unit, key)
+				member:RegisterUnitEvent("UNIT_SPELLCAST_DELAYED", member.unit, key)
+				member:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_START", member.unit, key)
+				member:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_UPDATE", member.unit, key)
+				member:RegisterUnitEvent("UNIT_SPELLCAST_CHANNEL_STOP", member.unit, key)
+				InvenRaidFrames3Member_UpdateCastingBar(member)
+
+			else
+				member:UnregisterEvent("UNIT_SPELLCAST_START")
+				member:UnregisterEvent("UNIT_SPELLCAST_STOP")
+				member:UnregisterEvent("UNIT_SPELLCAST_DELAYED")
+				member:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_START")
+				member:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_UPDATE")
+				member:UnregisterEvent("UNIT_SPELLCAST_CHANNEL_STOP")
+
+			end
+
 		end
 	end
 	menu.use = LBO:CreateWidget("CheckBox", parent, L["사용하기"], L["lime_func_other_23"], nil, nil, true,
@@ -1620,7 +2333,7 @@ function Option:CreateCastingBarMenu(menu, parent)
 	menu.pos:SetPoint("TOP", menu.use, "BOTTOM", 0, 0)
 	menu.size = LBO:CreateWidget("Slider", parent, L["크기"].."(".. L["픽셀"] ..")", L["lime_func_other_26"], nil, disable, true,
 		function()
-			return IRF3.db.units.castingBarHeight, 1, 5, 1 
+			return IRF3.db.units.castingBarHeight, 1, 20, 1 
 		end,
 		function(v)
 			IRF3.db.units.castingBarHeight = v
@@ -1628,6 +2341,31 @@ function Option:CreateCastingBarMenu(menu, parent)
 		end
 	)
 	menu.size:SetPoint("TOP", menu.color, "BOTTOM", 0, 0)
+
+	menu.showicon = LBO:CreateWidget("CheckBox", parent, L["lime_func_other_26_1"] , L["lime_func_other_26_2"] , nil, disable, true,
+		function()
+			return IRF3.db.units.useCastingBarIcon
+		end,
+		function(v)
+			IRF3.db.units.useCastingBarIcon = v
+			Option:UpdateMember(InvenRaidFrames3Member_SetupCastingBarPos)
+		end
+	)
+	menu.showicon:SetPoint("TOPLEFT", menu.pos,"BOTTOMLEFT", 5, 5)
+
+
+	menu.fontsize = LBO:CreateWidget("Slider", parent, L["글꼴"]..L["크기"].."(".. L["픽셀"] ..")", L["lime_func_other_26_3"], nil, disable, true,
+		function()
+			return IRF3.db.units.castingBarFontSize, 5, 20, 1 
+		end,
+		function(v)
+			IRF3.db.units.castingBarFontSize = v
+			Option:UpdateMember(InvenRaidFrames3Member_SetupCastingBarPos)
+		end
+	)
+	menu.fontsize:SetPoint("TOP", menu.size, "BOTTOM", 0, 0)
+
+
 end
 
 function Option:CreatePowerBarAltMenu(menu, parent)
@@ -1929,4 +2667,150 @@ function Option:CreateLeaderIconMenu(menu, parent)
 	)
 	menu.size:SetPoint("TOP", menu.pos, "TOP", 0, 0)
 	menu.size:SetPoint("RIGHT", 0, -5)
+end
+
+
+function Option:CreateMemberSelectMenu(menu, parent)
+	local typeList = { L["사용 안함"],L["대상"],SL(17),SL(139),SL(774),SL(33763)} --2:보호막 3:소생 4:회복 : 5피생
+
+	local function disable()
+		return (InvenRaidFrames3CharDB.memberselect or 0) < 2
+	end
+
+	local function update_handler()
+		SecureHandlerUnwrapScript(IRF3PartyTarget,"OnClick")
+		SecureHandlerWrapScript(IRF3PartyTarget,"OnClick",IRF3PartyTarget,[[
+		local maxUnits = self:GetAttribute("maxUnits") -- 5 for arena, 5 for party, 40 for raid
+		local unitType = self:GetAttribute("unitType")
+		local index = self:GetAttribute("unitIndex") -- number 0-X of last seen unit
+		local direction = button=="RightButton" and -1 or 1
+
+
+		for i=1,maxUnits do
+
+			if maxUnits ==40  then --raid면	
+				index = (index+direction)%40
+			else
+				index = (index+direction)%5 --파티/투기장은 최대5명
+			end
+			local unit = unitType..index+1
+			if unit=="party5" then
+				unit = "player" -- for party targeting, 5th unit is player
+			end
+
+
+			if UnitExists(unit) then
+				self:SetAttribute("unitIndex",index)
+				self:SetAttribute("unit",unit)
+				self:SetAttribute("macrotext", "/target [@"..unit.."]")
+
+				return
+			end
+		end
+		self:SetAttribute("unit",nil) -- if no unit, don't target
+	]])
+
+
+		SecureHandlerUnwrapScript(IRF3RaidTarget,"OnClick")
+		SecureHandlerWrapScript(IRF3RaidTarget,"OnClick",IRF3RaidTarget,[[
+		local maxUnits = self:GetAttribute("maxUnits") -- 5 for arena, 5 for party, 40 for raid
+		local unitType = self:GetAttribute("unitType")
+		local index = self:GetAttribute("unitIndex") -- number 0-X of last seen unit
+		local direction = button=="RightButton" and -1 or 1
+
+
+		for i=1,maxUnits do
+
+			if maxUnits ==40  then --raid면	
+				index = (index+direction)%40
+			else
+				index = (index+direction)%5 --파티/투기장은 최대5명
+			end
+			local unit = unitType..index+1
+			if unit=="party5" then
+				unit = "player" -- for party targeting, 5th unit is player
+			end
+
+
+			if UnitExists(unit) then
+				self:SetAttribute("unitIndex",index)
+				self:SetAttribute("unit",unit)
+				self:SetAttribute("macrotext", "/target [@"..unit.."]")
+
+				return
+			end
+		end
+		self:SetAttribute("unit",nil) -- if no unit, don't target
+	]])
+
+
+
+
+	end
+
+
+	menu.memberselect = LBO:CreateWidget("DropDown", parent, L["순차선택"], L["순차선택_desc"], nil, nil, true,
+		function()
+
+			return (InvenRaidFrames3CharDB.memberselect  or 0) + 1, typeList
+		end,
+		function(v)
+			InvenRaidFrames3CharDB.memberselect = v - 1
+--			Option:UpdateMember(update)
+--			LBO:Refresh(parent)
+			if InvenRaidFrames3CharDB.memberselect==0 then
+				SecureHandlerUnwrapScript(IRF3PartyTarget,"OnClick")
+				SecureHandlerUnwrapScript(IRF3RaidTarget,"OnClick")
+			elseif InvenRaidFrames3CharDB.memberselect==1 then
+				update_handler()
+			elseif InvenRaidFrames3CharDB.memberselect>1 then
+				IRF3:MemberSelect_Adjust()
+			end
+			LBO:Refresh(parent)
+		end
+	)
+	menu.memberselect:SetPoint("TOPLEFT", 5, -10)
+
+
+local excepttypeList = { L["사용 안함"],"방어전담만 제외","방어전담만 포함"}
+
+	menu.memberselect_except = LBO:CreateWidget("DropDown", parent, L["순차선택 옵션"], L["순차선택 옵션_desc"], nil, disable, true,
+		function(v)
+			return (InvenRaidFrames3CharDB.memberselect_except   or 0) +1,excepttypeList
+		end,
+		function(v)
+			InvenRaidFrames3CharDB.memberselect_except = v-1
+--			Option:UpdateMember(update)
+--			LBO:Refresh(parent)
+			if InvenRaidFrames3CharDB.memberselect>1 then
+				IRF3:MemberSelect_Adjust()
+			end
+		end
+	)
+	menu.memberselect_except:SetPoint("TOPLEFT", menu.memberselect,"TOPRIGHT",0,0)
+
+
+ 
+
+	menu.text1 = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	menu.text1:SetText(L["lime_func_20"])
+	menu.text1:SetPoint("TOPLEFT", menu.memberselect, "BOTTOMLEFT", 0 ,-10)
+	menu.text1:SetJustifyH("LEFT")
+	menu.text1:SetJustifyV("TOP")
+
+	menu.text2 = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	menu.text2:SetText(L["lime_func_21"])
+	menu.text2:SetPoint("TOPLEFT", menu.text1, "BOTTOMLEFT", 0 ,-10)
+	menu.text2:SetJustifyH("LEFT")
+	menu.text2:SetJustifyV("TOP")
+
+--[[
+	menu.text3 = parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	menu.text3:SetText(L["lime_func_22"])
+	menu.text3:SetPoint("TOPLEFT", menu.text2, "BOTTOMLEFT", 0 ,-10)
+	menu.text3:SetJustifyH("LEFT")
+	menu.text3:SetJustifyV("TOP")
+
+]]--
+	
 end

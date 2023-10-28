@@ -39,22 +39,81 @@ function Option:CreateClickCastingMenu(menu, parent)
 		function() return IRF3.db.enableClickCast end,
 		function(v)
 			IRF3.db.enableClickCast = v
-			
+			menu.useClique:Update()
+
 		end
 	)
 	menu.enableClickCast:SetPoint("TOPLEFT", 0,0)
 
+	local function disable()
+		return IRF3.db.enableClickCast
+	end
+
+	menu.useClique = LBO:CreateWidget("CheckBox", parent, L["UseClique"], L["UseClique_desc"], nil, disable, true,
+		function() return IRF3.db.useClique end,
+		function(v)
+			IRF3.db.useClique = v
+
+		end
+	)
+	menu.useClique:SetPoint("TOPLEFT", menu.enableClickCast,"TOPRIGHT", 60,0)
+
+	menu.activateUnitFrame = LBO:CreateWidget("CheckBox", parent, L["activateUnitFrame"], L["activateUnitFrame_desc"], nil, nil, true,
+		function() return IRF3.db.activateUnitFrame end,
+		function(v)
+			IRF3.db.activateUnitFrame = v
+		
+
+		end
+	)
+	menu.activateUnitFrame:SetPoint("TOPLEFT", menu.enableClickCast,"BOTTOMLEFT",0,0)
+
 --test
+
+	menu.talentGroup =  parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
+	menu.talentGroup:SetPoint("TOPLEFT", menu.activateUnitFrame, "BOTTOMLEFT", 0, 0)
+
+--복제버튼
+	menu.duplicate = LBO:CreateWidget("Button", parent, L["lime_func_aura_50"], L["lime_func_aura_51"], nil, nil, true,
+		function()
+			StaticPopupDialogs["IRF_CLICKCAST"] = {
+			text = L["lime_func_aura_48"],
+			button1="Yes", button2="No", timeout=30, whileDead=1, showAlert=enable, hideOnEscape=1,
+			OnAccept=function()   
+
+
+			if GetActiveTalentGroup()==1 then
+
+ 				for k,v in pairs(InvenRaidFrames3CharDB.clickCasting[1] ) do
+ 					InvenRaidFrames3CharDB.clickCasting[2][k]=v
+ 				end
+
+			elseif GetActiveTalentGroup()==2 then
+
+				for k,v in pairs(InvenRaidFrames3CharDB.clickCasting[2] ) do
+					InvenRaidFrames3CharDB.clickCasting[1][k]=v
+
+				end
+		
+			end
+		
+			IRF3:Message(L["lime_func_aura_49"])
+			 end,
+			OnCancel=function()   end
+			}
+			StaticPopup_Show("IRF_CLICKCAST")
+		end
+	)
+	menu.duplicate:SetPoint("TOPLEFT", menu.talentGroup, "TOPRIGHT", 0, 15)
 
 
 	menu.buttons = LBO:CreateWidget("Menu", parent, buttonNames)
 	menu.buttons:SetBackdropBorderColor(0.6, 0.6, 0.6)
-	menu.buttons:SetPoint("TOPLEFT", menu.enableClickCast, "BOTTOMLEFT", 6, 0)
+	menu.buttons:SetPoint("TOPLEFT", menu.talentGroup, "BOTTOMLEFT", 0, -10)
 	menu.buttons:SetPoint("BOTTOMRIGHT", parent, "BOTTOMLEFT", 150, 6)
 
 	menu.buttons:SetValue(1)
-	menu.talentGroup =  parent:CreateFontString(nil, "OVERLAY", "GameFontNormal")
-	menu.talentGroup:SetPoint("BOTTOM", menu.buttons, "TOP", -2, 4)
+
 
 	local dropdown = CreateFrame("Frame", "InvenRaidFrames3ClickCastingDropDown", UIParent, "UIDropDownMenuTemplate")
 	local name, start, last, spell, rank, spellId, _
@@ -380,7 +439,8 @@ function Option:CreateClickCastingMenu(menu, parent)
 	menu.clickKeys:SetBackdrop(menu.buttons:GetBackdrop())
 	menu.clickKeys:SetBackdropBorderColor(menu.buttons:GetBackdropBorderColor())
 --	menu.clickKeys:SetPoint("TOPLEFT", menu.buttons, "TOPRIGHT", 0, 20)
-	menu.clickKeys:SetPoint("TOPLEFT", menu.enableClickCast, "BOTTOMRIGHT", 0, 0)
+--	menu.clickKeys:SetPoint("TOPLEFT", menu.enableClickCast, "BOTTOMRIGHT", 0, -10)
+	menu.clickKeys:SetPoint("TOPLEFT", menu.buttons, "TOPRIGHT", 0, 0)
 	menu.clickKeys:SetPoint("BOTTOMRIGHT", parent, "BOTTOMRIGHT", -6, 6)
 	local modifilters = { "", "alt-", "ctrl-", "shift-", "alt-ctrl-", "alt-shift-", "ctrl-shift-" }
 	local modifilterNames = { L["클릭"], L["Alt + 클릭"], L["Ctrl + 클릭"], L["Shift + 클릭"], L["Alt + Ctrl + 클릭"], L["Alt + Shift + 클릭"], L["Ctrl + Shift + 클릭"] }
@@ -419,6 +479,7 @@ function Option:CreateClickCastingMenu(menu, parent)
 	end
 
 	local function modKeyOnClick(self)
+
 		dropdown.modifilter, dropdown.button = self.modifilter, buttonNames[menu.buttons:GetValue()].id
 		dropdown.set = IRF3.ccdb[dropdown.modifilter..dropdown.button]
 		if dropdown.set == "target" or dropdown.set == "menu" then
@@ -452,6 +513,7 @@ function Option:CreateClickCastingMenu(menu, parent)
 end
 
 function Option:UpdateClickCasting()
+
 	if Option.talentGroup and Option.clickKeys then
 --		Option.talentGroup:SetFormattedText("현재 활성화된 특성: %s", select(2, GetSpecializationInfo(GetSpecialization())))
 		Option.talentGroup:SetFormattedText(L["활성화특성"], GetActiveTalentGroup().."특성")--1특성 2특성

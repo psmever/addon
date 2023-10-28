@@ -1,4 +1,5 @@
 LBIS.UserItems = {}
+LBIS.UserSlotCache = {}
 LBIS.UserItemCacheBuilt = false;
 
 local hasBagnon = Bagnon or Combuctor;
@@ -10,8 +11,8 @@ local wowSlotCodes = {"HEADSLOT", "NECKSLOT", "SHOULDERSLOT", "CHESTSLOT", "WAIS
 local readBagsWithApi = function()
 
     for bag = -1, NUM_BAG_SLOTS + NUM_BANKBAGSLOTS do        
-        for slot = 1, GetContainerNumSlots(bag) do
-            local itemLink = GetContainerItemLink(bag, slot);
+        for slot = 1, C_Container.GetContainerNumSlots(bag) do
+            local itemLink = C_Container.GetContainerItemLink(bag, slot);
             if itemLink then
                 local itemId = LBIS:GetItemIdFromLink(itemLink);
                 if bag < 0 or bag > NUM_BAG_SLOTS then
@@ -61,6 +62,7 @@ function LBIS:BuildItemCache()
         if itemLink then
             local itemId = LBIS:GetItemIdFromLink(itemLink);
             LBIS.UserItems[tonumber(itemId)] = "player";
+            LBIS.UserSlotCache[slotCode] = itemId;
         end
     end
 
@@ -71,4 +73,3 @@ function LBIS:BuildItemCache()
     end
 
 end
-

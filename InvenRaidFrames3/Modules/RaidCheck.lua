@@ -474,9 +474,10 @@ local function announce()
 		issuesFlask = false;
 	end
 
-	if(IRF3.db.units.annRune and string.len(norune) == 0 and string.len(exprune) == 0) then
+--	if(IRF3.db.units.annRune and string.len(norune) == 0 and string.len(exprune) == 0) then
+		--리분시점에 증강의룬은 없음
 		issuesRune = false;
-	end
+--	end
 
 	if(IRF3.db.units.annRune == false) then issuesRune = false; end
 	if(IRF3.db.units.annFlask == false) then issuesFlask = false; end

@@ -3,7 +3,9 @@ local _, addon = ...;
 local floor = _G.floor;
 
 local Main = addon.import('Logic/Main');
+local Utils = addon.import('Core/Utils');
 local options = addon.import('Logic/Options').getAll();
+local Enhancements = addon.importPending('Features/Enhancements');
 local Layout = addon.importPending('Layouts/Main');
 
 local module = addon.export('Logic/Settings', {});
@@ -17,7 +19,7 @@ handlers.direction = {
 
     options.direction = value;
     return true;
-  end
+  end,
 };
 
 handlers.buttonsperrow = {
@@ -35,7 +37,7 @@ handlers.buttonsperrow = {
   end,
   get = function ()
     return options.buttonsPerRow;
-  end
+  end,
 };
 
 handlers.scale = {
@@ -49,7 +51,7 @@ handlers.scale = {
     options.scale = numberValue;
     Main.applyScale();
     return true;
-  end
+  end,
 };
 
 handlers.buttonscale = {
@@ -66,8 +68,44 @@ handlers.buttonscale = {
   end,
   get = function ()
     return options.buttonScale;
-  end
-}
+  end,
+};
+
+handlers.autohide = {
+  set = function (value)
+    local numberValue = tonumber(value);
+
+    if (numberValue == nil) then
+      return false;
+    end
+
+    options.autohide = numberValue;
+
+    if (numberValue > 0) then
+      Main.hideButtons();
+    end
+
+    return true;
+  end,
+};
+
+if (Utils.isRetail()) then
+  handlers.hidecompartment = {
+    set = function (value)
+      if (value == 'true') then
+        options.hidecompartment = true;
+        Enhancements.hideCompartmentFrame();
+      elseif (value == 'false') then
+        options.hidecompartment = false;
+        Enhancements.showCompartmentFrame();
+      else
+        return false;
+      end
+
+      return true;
+    end,
+  };
+end
 
 function module.printAvailableSettings ()
   for setting in pairs(handlers) do

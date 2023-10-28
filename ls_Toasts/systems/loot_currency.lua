@@ -12,15 +12,11 @@ local t_wipe = _G.table.wipe
 local tonumber = _G.tonumber
 local tostring = _G.tostring
 
--- Blizz
-local C_CurrencyInfo = _G.C_CurrencyInfo
-
 -- Mine
 local currencies = {}
 local listSize = 0
 
 local function populateCurrencyLists()
-	C.db.profile.types.loot_currency.filters[1792] = nil
 	listSize = GetCurrencyListSize()
 	if listSize > 0 then
 		local _, isHeader, count, id
@@ -171,7 +167,12 @@ local function updateFilterOptions()
 
 	for id in next, C.db.profile.types.loot_currency.filters do
 		info = C_CurrencyInfo.GetBasicCurrencyInfo(id)
-		t_insert(nameToIndex, info.name)
+		if info then
+			t_insert(nameToIndex, info.name)
+		else
+			-- remove invalid IDs, some people do stuff...
+			C.db.profile.types.loot_currency.filters[id] = nil
+		end
 	end
 
 	t_sort(nameToIndex)

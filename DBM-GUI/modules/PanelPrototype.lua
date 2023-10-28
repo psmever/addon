@@ -88,12 +88,16 @@ function PanelPrototype:CreateSpellDesc(text)
 	-- Description logic
 	if type(text) == "number" then
 		local spell = Spell:CreateFromSpellID(text)
+		textblock:SetText("Loading...")
 		spell:ContinueOnSpellLoad(function()
 			text = GetSpellDescription(spell:GetSpellID())
 			if text == "" then
 				text = L.NoDescription
 			end
 			textblock:SetText(text)
+			if DBM_GUI.currentViewing then
+				_G["DBM_GUI_OptionsFrame"]:DisplayFrame(DBM_GUI.currentViewing)
+			end
 		end)
 	else
 		if text == "" then
@@ -591,6 +595,7 @@ function DBM_GUI:CreateNewPanel(frameName, frameType, showSub, _, displayName)
 	panel:SetPoint("TOPLEFT", "DBM_GUI_OptionsFramePanelContainer", "TOPLEFT")
 	panel.displayName = displayName or frameName
 	panel.showSub = showSub or showSub == nil
+	panel.modid = frameName
 	panel:Hide()
 	if frameType == "option" then
 		frameType = 2

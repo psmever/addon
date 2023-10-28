@@ -20,7 +20,9 @@ L["Show minimap icon"] = "显示小地图按钮"
 L["Show info"] = "显示信息"
 L["per Character"] = "单角色"
 L["per Realm"] = "单服务器"
+L["Show total gold"] = "顯示總金"
 L["Hide info from level under"] = "低于等级隐藏信息"
+L["Show current chracter first"] = true
 
 L["Tooltip - Character info."] = "提示 - 角色信息"
 L["Line 1 of char info."] = "角色信息第一行"
@@ -37,6 +39,7 @@ L["Desc_Char"] = "|cff00ff00■|r |cffccaa00使用方法 - 角色信息|r|n"
     .."|cffccaa00[cooldown]|r 专业技能冷却时间|n"
     .."|cffccaa00[dqCom] [dqMax]|r|n"
     .."|cffccaa00[dqReset]|r 日常任务重置时间|n"
+    .."|cffccaa00[gs] [ilvl]|r|n"
     .."|cffccaa00[color/######]|r 颜色开始(RGB 代码)|n|cffccaa00[color]|r  颜色结束|n"
     .."  通過在末尾添加 /###### 著色|n"
     .."|cffffeeaa(例如) |r|cffccaa00[color/ffffff]白色[color] =>|r |cffffffff白色|r|n   |cffccaa00[item:6265|cffcc3333/cc66cc|r] => |r|cffcc66cc".."|T"..GetItemIcon(6265)..":14:14|t12|r|n"
@@ -81,6 +84,8 @@ L["expRest%"  ] = true
 L["dqCom"     ] = true
 L["dqMax"     ] = true
 L["dqReset"   ] = true
+L["gs"        ] = true
+L["ilvl"      ] = true
 L["instName"  ] = true
 L["instID"    ] = true
 L["difficulty"] = true
@@ -111,6 +116,8 @@ L["IoC"     ] = true
 L["shard"   ] = true
 L["venture" ] = true
 L["justice" ] = true
+L["sidereal"] = true
+L["defilers"] = true
 -- Heroic dungeon names, abbrs
 L["TOK"] = true
 L[ "AN"] = true
@@ -124,8 +131,34 @@ L["Ocu"] = true
 L[ "VH"] = true
 L[ "UK"] = true
 L[ "UP"] = true
-L["ToC"] = true
+L["ToCh"] = "ToC"
 L["HoR"] = true
 L["PoS"] = true
 L["FoS"] = true
+-- Raid abbr. WotLK
+L["Naxx"] = true
+L["OS"]   = true
+L["EoE"]  = true
+L["ULD"]  = true
+L["Ony"]  = true
+L["ToC"]  = true
+L["ICC"]  = true
+L["RS"]   = true
+L["VoA"]  = true
+-- Raid abbr. TBC
+L["SP"] = true
+L["ZA"] = true
+L["BT"] = true
+L["MH"] = true
+L["SC"] = true
+L["TK"] = true
+L["KZ"] = true
+L["GL"] = true
+L["ML"] = true
+-- Raid abbr. Vanilla
+L["AQ"] = true
+L["RA"] = true
+L["ZG"] = true
+L["BW"] = true
+L["MC"] = true
 end

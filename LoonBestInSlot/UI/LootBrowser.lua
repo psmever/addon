@@ -9,7 +9,9 @@ function LBIS.BrowserWindow:OpenWindow(tabName)
     if not LBIS.BrowserWindow.Window then
         LBIS.BrowserWindow:CreateBrowserWindow();
     end
-    open_tab = tabName;
+    if tabName ~= nil then
+        LBISSettings.OpenTab = tabName;
+    end
     LBIS.BrowserWindow:RefreshItems();
     LBIS.BrowserWindow.Window:Show();
 
@@ -31,7 +33,6 @@ end
 
 local customListTabButton;
 local customEditTabButton;
-local open_tab = "ItemList";
 function LBIS.BrowserWindow:RefreshItems()    
 
     if LBISSettings.ShowCustom then
@@ -42,51 +43,66 @@ function LBIS.BrowserWindow:RefreshItems()
         customEditTabButton:Hide()
     end
 
-    if open_tab == "ItemList" then
-        LBIS.ItemList:UpdateItems();
-    elseif open_tab == "GemList" then
+    if LBISSettings.OpenTab == "ItemList" then
+        PanelTemplates_SetTab(LBIS.BrowserWindow.Window.Container, 1);
+        --LBIS:MeasureCode("RefreshItems", function()
+            LBIS.ItemList:UpdateItems();
+        --end);
+    elseif LBISSettings.OpenTab == "GemList" then
+        PanelTemplates_SetTab(LBIS.BrowserWindow.Window.Container, 2);
         LBIS.GemList:UpdateItems();
-    elseif open_tab == "EnchantList" then
+    elseif LBISSettings.OpenTab == "EnchantList" then
+        PanelTemplates_SetTab(LBIS.BrowserWindow.Window.Container, 3);
         LBIS.EnchantList:UpdateItems();        
-    elseif open_tab == "CustomEditList" then
-        LBIS.CustomEditList:UpdateItems();
-    elseif open_tab == "CustomItemList" then
+    elseif LBISSettings.OpenTab == "CustomItemList" then
+        PanelTemplates_SetTab(LBIS.BrowserWindow.Window.Container, 4);
         LBIS.CustomItemList:UpdateItems();
+    elseif LBISSettings.OpenTab == "CustomEditList" then
+        PanelTemplates_SetTab(LBIS.BrowserWindow.Window.Container, 5);
+        LBIS.CustomEditList:UpdateItems();
     end
 end
 
 local failedLoad = false;
-local deleted_windows = {};
+local window_cache = {};
+
+function LBIS:InitializeUI()    
+    for specId, spec in pairs(LBIS.ClassSpec) do
+        if strlen(spec.Spec) > 0 then
+            window_cache[spec.Class..": "..spec.Spec] = {};
+        end
+    end
+end
+
 function LBIS.BrowserWindow:CreateItemRow(specItem, specItemSource, frameName, point, rowFunc)
     local window = LBIS.BrowserWindow.Window;
     local spacing = 1;
-    local name = frameName;
-    local f, l = nil, nil;
     local reusing = false;
     
-    --TODO: MAKE THIS FASTER WHEN THERES TONS OF FRAMES !
-    -- attempting to reuse a previous child frame if it exists 
-    -- (which should include the previously created fontstring and button)
-    if(next(deleted_windows) ~= nil) then
-        for i=1, #deleted_windows do
-            if(name == deleted_windows[i]:GetName()) then
-                f = deleted_windows[i];
+    local f = nil;
+    if(next(window_cache[LBISSettings.SelectedSpec]) ~= nil) then
+		for i=1, #window_cache[LBISSettings.SelectedSpec] do			
+            if(frameName == window_cache[LBISSettings.SelectedSpec][i]:GetName()) then
+                f = window_cache[LBISSettings.SelectedSpec][i];
                 reusing = true;
+				break;
             end
         end
     end
     
     if not reusing then        
-        f = CreateFrame("Frame", name, window.Container);
+        f = CreateFrame("Frame", frameName, window.Container);
 
         local rowHeight = rowFunc(f, specItem, specItemSource);
         
-        l = f:CreateLine();
+        local l = f:CreateLine();
         l:SetColorTexture(1,1,1,0.5);
         l:SetThickness(1);
         l:SetStartPoint("BOTTOMLEFT",5, 0);
         l:SetEndPoint("BOTTOMRIGHT",-5, 0);
         f:SetSize(window.ScrollFrame:GetWidth(), rowHeight);
+
+        tinsert(window_cache[LBISSettings.SelectedSpec], f);
     end
 
     f:ClearAllPoints();
@@ -116,16 +132,10 @@ function LBIS.BrowserWindow:UpdateItemsForSpec(rowFunc)
         for i=1, self:GetNumChildren() do
         
             local child = select(i, self:GetChildren());
-            
-            -- Saving a reference to our previous child frame so that we can reuse it later
-            if(not tContains(deleted_windows, child)) then 
-                tinsert(deleted_windows, child);
-            end
-            
+                        
             child:Hide();
         end
     end
-
     clear_content(window.Container);
     
     LBIS.BrowserWindow.MaxHeight = 0;
@@ -138,7 +148,10 @@ function LBIS.BrowserWindow:UpdateItemsForSpec(rowFunc)
     
     failedLoad = false;
 
-    rowFunc(point);
+    --LBIS:MeasureCode("UpdateItemsForSpec", function ()
+        rowFunc(point);
+    --end);
+
 
     if failedLoad then
         LBIS:Error("Failed to load one or more items into browser. Type /reload to attempt to fix", "");
@@ -165,7 +178,7 @@ local function createTabs(window, content)
     itemListTabButton:SetPoint("CENTER", window, "BOTTOMLEFT", 60, -13);
     itemListTabButton:SetScript("OnClick", function(self)
         PanelTemplates_SetTab(content, 1);
-        open_tab = "ItemList";
+        LBISSettings.OpenTab = "ItemList";
 
         LBIS.BrowserWindow:RefreshItems();
     end);
@@ -177,7 +190,7 @@ local function createTabs(window, content)
     gemListTabButton:SetPoint("LEFT", itemListTabButton, "RIGHT", -16, 0);
     gemListTabButton:SetScript("OnClick", function(self)
         PanelTemplates_SetTab(content, 2);
-        open_tab = "GemList";
+        LBISSettings.OpenTab = "GemList";
 
         LBIS.BrowserWindow:RefreshItems();
     end);
@@ -189,7 +202,7 @@ local function createTabs(window, content)
     enchantListTabButton:SetPoint("LEFT", gemListTabButton, "RIGHT", -16, 0);
     enchantListTabButton:SetScript("OnClick", function(self)
         PanelTemplates_SetTab(content, 3);
-        open_tab = "EnchantList";
+        LBISSettings.OpenTab = "EnchantList";
 
         LBIS.BrowserWindow:RefreshItems();
     end);
@@ -202,7 +215,7 @@ local function createTabs(window, content)
     customListTabButton:SetPoint("LEFT", enchantListTabButton, "RIGHT", -16, 0);
     customListTabButton:SetScript("OnClick", function(self)
         PanelTemplates_SetTab(content, 4);
-        open_tab = "CustomItemList";
+        LBISSettings.OpenTab = "CustomItemList";
 
         LBIS.BrowserWindow:RefreshItems();
     end);
@@ -214,7 +227,7 @@ local function createTabs(window, content)
     customEditTabButton:SetPoint("LEFT", customListTabButton, "RIGHT", -16, 0);
     customEditTabButton:SetScript("OnClick", function(self)
         PanelTemplates_SetTab(content, 5);
-        open_tab = "CustomEditList";
+        LBISSettings.OpenTab = "CustomEditList";
     
         LBIS.BrowserWindow:RefreshItems();
     end);
@@ -230,7 +243,7 @@ local function createDropDowns(window)
 
             local specString = spec.Class;
             if strlen(spec.Spec) > 0 then
-                specString = spec.Spec.." "..specString;
+                specString = specString..": "..spec.Spec;
             end
             table.insert(specList, specString)
             LBIS.NameToSpecId[specString] = specId;
@@ -273,7 +286,7 @@ local function createDropDowns(window)
         ['name']='phase',
         ['parent']=window,
         ['title']='Phase:',
-        ['items']= { LBIS.L["All"], LBIS.L["PreRaid"], LBIS.L["Phase 1"], "BIS" }, --LBIS.L["Phase 2"], LBIS.L["Phase 3"], LBIS.L["Phase 4"], LBIS.L["Phase 5"],
+        ['items']= { LBIS.L["All"], LBIS.L["PreRaid"], LBIS.L["Phase 1"], LBIS.L["Phase 2"], LBIS.L["Phase 3"], LBIS.L["Phase 4"], "BIS" }, --LBIS.L["Phase 5"],
         ['defaultVal']=LBISSettings.SelectedPhase,
         ['changeFunc']=function(dropdown_frame, dropdown_val)
             LBISSettings.SelectedPhase = dropdown_val;
@@ -315,11 +328,13 @@ local function createDropDowns(window)
         ['name']='zone',
         ['parent']=window,
         ['title']='Raid:',
-        ['items']= { LBIS.L["All"], LBIS.L["Naxxramas (10)"], LBIS.L["Naxxramas (25)"], LBIS.L["The Eye of Eternity (10)"], LBIS.L["The Eye of Eternity (25)"], 
-            LBIS.L["Vault of Archavon (10)"], LBIS.L["Vault of Archavon (25)"], LBIS.L["The Obsidian Sanctum (10)"], LBIS.L["The Obsidian Sanctum (25)"]},
-            --LBIS.L["Ulduar (10)"], LBIS.L["Ulduar (25)"], 
-            --LBIS.L["Trial of the Crusader (10)"], LBIS.L["Trial of the Crusader (25)"], LBIS.L["Onyxia's Lair (10)"], LBIS.L["Onyxia's Lair (25)"], 
-            --LBIS.L["Icecrown Citadel (10)"], LBIS.L["Icecrown Citadel (25)"],
+        ['items']= { LBIS.L["All"], LBIS.L["Heroic"], LBIS.L["Naxxramas"], LBIS.L["The Eye of Eternity"], LBIS.L["The Obsidian Sanctum"], 
+            LBIS.L["Ulduar (10)"], LBIS.L["Ulduar (25)"], 
+            LBIS.L["Vault of Archavon (10)"], LBIS.L["Vault of Archavon (25)"], 
+            LBIS.L["Trial of the Crusader (10)"], LBIS.L["Trial of the Crusader (25)"],
+            LBIS.L["Trial of the Grand Crusader (10)"], LBIS.L["Trial of the Grand Crusader (25)"],
+            LBIS.L["Onyxia (10)"], LBIS.L["Onyxia (25)"], 
+            LBIS.L["Icecrown Citadel (10)"], LBIS.L["Icecrown Citadel (10H)"], LBIS.L["Icecrown Citadel (25)"], LBIS.L["Icecrown Citadel (25H)"]},
             --LBIS.L["The Ruby Sanctum (10)"], LBIS.L["The Ruby Sanctum (25)"]},
         ['defaultVal']= LBISSettings.SelectedZone,
         ['changeFunc']=function(dropdown_frame, dropdown_val)
@@ -398,8 +413,6 @@ function LBIS.BrowserWindow:CreateBrowserWindow()
 
     window:RegisterForDrag("LeftButton");
 
-    createDropDowns(window);
-
     local header = window:CreateFontString(nil, nil, "GameFontHighlightMed2");
     header:SetText(LBIS.L["Loon Best In Slot Browser"]);
     header:SetPoint("TOP", window, -5, -5);
@@ -433,6 +446,7 @@ function LBIS.BrowserWindow:CreateBrowserWindow()
     window:SetScript("OnDragStart", function(self) self:StartMoving() end);
     window:SetScript("OnDragStop", function(self) self:StopMovingOrSizing() end);
 
+    createDropDowns(window);
     createTabs(window, content);
 
     local f = CreateFrame("Frame", nil, content);				

@@ -1586,7 +1586,7 @@ Private.load_prototype = {
       name = "spellknown",
       display = L["Spell Known"],
       type = "spell",
-      test = "WeakAuras.IsSpellKnownForLoad(%q, %s)",
+      test = "WeakAuras.IsSpellKnownForLoad(%s, %s)",
       events = WeakAuras.IsWrathClassic() and {"SPELLS_CHANGED", "UNIT_PET", "PLAYER_TALENT_UPDATE"} or {"SPELLS_CHANGED", "UNIT_PET"},
       showExactOption = true
     },
@@ -1594,7 +1594,7 @@ Private.load_prototype = {
       name = "not_spellknown",
       display = WeakAuras.newFeatureString .. L["|cFFFF0000Not|r Spell Known"],
       type = "spell",
-      test = "not WeakAuras.IsSpellKnownForLoad(%q, %s)",
+      test = "not WeakAuras.IsSpellKnownForLoad(%s, %s)",
       events = WeakAuras.IsWrathClassic() and {"SPELLS_CHANGED", "UNIT_PET", "PLAYER_TALENT_UPDATE"} or {"SPELLS_CHANGED", "UNIT_PET"},
       showExactOption = true
     },
@@ -1705,6 +1705,17 @@ Private.load_prototype = {
       init = "arg",
       values = "group_types",
       events = {"GROUP_ROSTER_UPDATE"}
+    },
+    {
+      name = "groupSize",
+      display = L["Group Size"],
+      type = "number",
+      init = "arg",
+      events = {"GROUP_ROSTER_UPDATE"},
+      multiEntry = {
+        operator = "and",
+        limit = 2
+      },
     },
     {
       name = "group_leader",
@@ -4231,7 +4242,7 @@ Private.event_prototypes = {
           operator = "preamble",
           preambleAdd = WeakAuras.IsClassicEra() and "spellChecker:AddName(%q)" or "spellChecker:AddExact(%q)"
         },
-        test = WeakAuras.IsClassicEra() and "spellChecker:Check(spellName)" or "spellChecker:Check(spellId)",
+        test = WeakAuras.IsClassicEra() and "spellChecker:CheckName(spellName)" or "spellChecker:Check(spellId)",
         testGroup = "spell",
         conditionType = "number",
         type = "spell",
@@ -4252,7 +4263,7 @@ Private.event_prototypes = {
           operator = "preamble",
           preambleAdd = "spellChecker:AddName(%q)"
         },
-        test = WeakAuras.IsClassicEra() and "spellChecker:Check(spellName)" or "spellChecker:Check(spellId)",
+        test = WeakAuras.IsClassicEra() and "spellChecker:CheckName(spellName)" or "spellChecker:Check(spellId)",
         testGroup = "spell",
         conditionType = "string"
       },
@@ -4608,7 +4619,7 @@ Private.event_prototypes = {
     force_events = "SPELL_COOLDOWN_FORCE",
     name = L["Cooldown/Charges/Count"],
     loadFunc = function(trigger)
-      trigger.spellName = trigger.spellName or 0;
+      trigger.spellName = type(trigger.spellName) ~= "table" and trigger.spellName or 0;
       local spellName;
       local followoverride = trigger.genericShowOn ~= "showOnReady" and trigger.use_followoverride
       if (trigger.use_exact_spellName) then
@@ -4622,7 +4633,7 @@ Private.event_prototypes = {
       end
     end,
     init = function(trigger)
-      trigger.spellName = trigger.spellName or 0;
+      trigger.spellName = type(trigger.spellName) ~= "table" and trigger.spellName or 0;
       local spellName;
       if (trigger.use_exact_spellName) then
         spellName = trigger.spellName;

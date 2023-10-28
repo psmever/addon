@@ -20,13 +20,17 @@ function LBIS:PreCacheItems()
     for prioSpec in pairs(LBISServerSettings.CustomList) do
         for prioSlot in pairs(LBISServerSettings.CustomList[prioSpec]) do
             local itemCount = 1;
-            for _, itemId in pairs(LBISServerSettings.CustomList[prioSpec][prioSlot]) do                
 
-                if LBIS.CustomEditList.Items[itemId] == nil then
-                    LBIS.CustomEditList.Items[itemId] = {};
+            LBIS:ConvertCustomList(LBISServerSettings.CustomList[prioSpec][prioSlot]);
+
+            for _, item in pairs(LBISServerSettings.CustomList[prioSpec][prioSlot]) do
+                
+                if LBIS.CustomEditList.Items[item.ItemId] == nil then
+                    LBIS.CustomEditList.Items[item.ItemId] = {};
                 end
 
-                LBIS.CustomEditList.Items[itemId][prioSpec] = itemCount;
+                LBIS.CustomEditList.Items[item.ItemId][prioSpec] = item;
+
                 itemCount = itemCount + 1;
             end
         end
@@ -38,6 +42,24 @@ function LBIS:PreCacheItems()
         end
     end
     return LBIS.AllItemsCached;
+end
+
+--TODO: Remove this after a few months ?
+function LBIS:ConvertCustomList(list)
+    
+    local itemCount = 1;
+    --Loop through all items in list
+    for _, item in pairs(list) do
+        if type(item) == "number" then
+            local itemId = item;
+            item = { ItemId = itemId, TooltipText = "Custom #"..itemCount }
+        end
+
+        list[itemCount] = item;
+
+        itemCount = itemCount + 1;
+    end
+
 end
 
 function LBIS:CacheItem(itemId)
@@ -79,7 +101,7 @@ function LBIS:FindInPhase(phaseText, phase)
         return false;
     end
 
-    return tonumber(firstNumber) <= phaseNumber and tonumber(lastNumber) >= phaseNumber;               
+    return tonumber(firstNumber) <= phaseNumber and tonumber(lastNumber) >= phaseNumber;
 end
 
 function LBIS:TableLength(T)
@@ -120,8 +142,9 @@ itemSlots["INVTYPE_QUIVER"] = LBIS.L["Quiver"];
 itemSlots["INVTYPE_RELIC"] = LBIS.L["Ranged/Relic"];
 function LBIS:GetItemInfo(itemId, returnFunc)
 
-    if not itemId or itemId <= 0 then
+    if itemId == nil or not itemId or itemId <= 0 then
         returnFunc({ Name = nil, Link = nil, Quality = nil, Type = nil, SubType = nil, Texture = nil, Class = nil, Slot = nil });
+        return;
     end
 
     local cachedItem = LBISServerSettings.ItemCache[itemId];
@@ -146,8 +169,8 @@ function LBIS:GetItemInfo(itemId, returnFunc)
                 Class = classId,
                 Slot = itemSlots[itemSlot]
             };
-
-            if name then
+            
+            if name and LBIS.ItemSources[itemId] ~= nil then
                 LBISServerSettings.ItemCache[itemId] = newItem;
             end
             
@@ -224,7 +247,7 @@ function LBIS:CreateDropdown(opts, width)
     LibDD:UIDropDownMenu_SetText(dropdown, default_val)
     LibDD:UIDropDownMenu_SetWidth(dropdown, width, 0)
 
-    local dd_title = dropdown:CreateFontString(dropdown, 'OVERLAY', 'GameFontNormalSmall')
+    local dd_title = dropdown:CreateFontString(nil, 'OVERLAY', 'GameFontNormalSmall')
     dd_title:SetText(title_text)
     dd_title:SetPoint("TOPLEFT", (-1 * dd_title:GetStringWidth()) + 20, -8)
 
@@ -360,7 +383,11 @@ function LBIS:Debug(startString, object)
 end
 
 function LBIS:Error(startString, object)
-    print("LoonBestInSlot ERROR:"..startString..stringify(object));
+    if object == nil then
+        print("LoonBestInSlot ERROR:"..startString);
+    else
+        print("LoonBestInSlot ERROR:"..startString..stringify(object));
+    end
 end
 
 function LBIS:GetItemIdFromLink(itemLink)
@@ -383,4 +410,14 @@ function LBIS:DeepCopy(src, dst)
 		end
 	end
 	return dst
+end
+
+function LBIS:MeasureCode(codeName, func)
+
+    --local startTime = time();
+
+    func();
+
+    --print(codeName.." took "..time() - startTime);
+
 end

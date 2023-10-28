@@ -55,13 +55,22 @@ lib.smoothing = lib.smoothing or {}
 
 local abs = math.abs
 
-local function AnimationTick()
+local function AnimationTick(self,elapsed)
+
+ self.TimeSinceLastUpdate = (self.TimeSinceLastUpdate or 0) + elapsed
+ if (self.TimeSinceLastUpdate > 0.02) then
+
 	for bar, value in pairs(lib.smoothing) do
+
+
 		local cur = bar:GetValue()
 		local new = cur + ((value - cur) / 3)
+
+
 		if new ~= new then
 			new = value
 		end
+
 		if cur == value or abs(new - value) < 2 then
 			bar:SetValue_(value)
 			lib.smoothing[bar] = nil
@@ -69,8 +78,12 @@ local function AnimationTick()
 			bar:SetValue_(new)
 		end
 	end
+ self.TimeSinceLastUpdate = 0
+ end
+
+
 end
-lib.frame:SetScript("OnUpdate", AnimationTick)
+lib.frame:SetScript("OnUpdate",AnimationTick )
 
 local function SmoothSetValue(self, value)
 	local _, max = self:GetMinMaxValues()

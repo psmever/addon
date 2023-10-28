@@ -5,7 +5,7 @@ if not mod:IsClassic() then--on classic, it's normal10,normal25, defined in toc,
 	mod.statTypes = "normal,timewalker"
 end
 
-mod:SetRevision("20231007034839")
+mod:SetRevision("20231026032354")
 mod:SetCreatureID(33186)
 if not mod:IsClassic() then
 	mod:SetEncounterID(1139)

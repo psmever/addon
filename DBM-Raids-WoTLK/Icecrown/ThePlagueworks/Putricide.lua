@@ -3,7 +3,7 @@ local L		= mod:GetLocalizedStrings()
 
 mod.statTypes = "normal,normal25,heroic,heroic25"
 
-mod:SetRevision("20231007034839")
+mod:SetRevision("20231026032354")
 mod:SetCreatureID(36678)
 mod:SetEncounterID(mod:IsClassic() and 851 or 1102)
 mod:SetModelID(30881)
@@ -249,7 +249,8 @@ function mod:SPELL_AURA_APPLIED(args)
 			timerUnboundPlague:Start()
 			yellUnboundPlague:Yell()
 		else
-			warnUnboundPlague:Show(args.destName)
+			warnUnboundPlague:Cancel()
+			warnUnboundPlague:Schedule(1, args.destName)
 		end
 	end
 end

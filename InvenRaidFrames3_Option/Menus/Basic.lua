@@ -10,6 +10,7 @@ function Option:CreateUseMenu(menu, parent)
 		function(v)
 			IRF3:SetAttribute("run", v == 1)
 			InvenRaidFrames3Overlord:GetScript("PostClick")(InvenRaidFrames3Overlord)
+--			IRF3:ToggleManager()
 		end
 	)
 	menu.run:SetPoint("TOPLEFT", 5, -5)
@@ -40,12 +41,18 @@ function Option:CreateUseMenu(menu, parent)
 		function(v)
 			IRF3.db.lock = v
 			IRF3.manager.content.lockButton:SetText(IRF3.db.lock and UNLOCK or LOCK)
+			menu.lockAlt:Update()
+			menu.shiftmove:Update()
 		end
 	)
 	menu.lock:SetPoint("TOP", menu.use, "BOTTOM", 0, -10)
 	self.lockMenu = menu.lock
 	
-	menu.lockAlt = LBO:CreateWidget("CheckBox", parent, L["lime_advanced_07"], L["lime_advanced_desc_07"], nil, nil, true,
+	local function disable()
+		return not IRF3.db.lock
+	end
+
+	menu.lockAlt = LBO:CreateWidget("CheckBox", parent, L["lime_advanced_07"], L["lime_advanced_desc_07"], nil, disable, true,
 		function() return IRF3.db.lockAlt end,
 		function(v)
 			IRF3.db.lockAlt = v
@@ -53,6 +60,24 @@ function Option:CreateUseMenu(menu, parent)
 	)
 	menu.lockAlt:SetPoint("TOP", menu.use, "BOTTOM", 70, -10)
 	
+	menu.hideBlizzardParty = LBO:CreateWidget("CheckBox", parent, L["lime_basic_07"], L["lime_basic_desc_07"], nil, nil, true,
+		function() return IRF3.db.hideBlizzardParty end,
+		function(v)
+
+			IRF3:HideBlizzardPartyFrame(v)
+		end
+	)
+	menu.hideBlizzardParty:SetPoint("TOP", menu.tooltip, "BOTTOM", 0, 0)
+
+	menu.shiftmove = LBO:CreateWidget("CheckBox", parent, L["lime_advanced_08"] , L["lime_advanced_desc_08"], nil, disable, true,
+		function() return IRF3.db.shiftmove  end,
+		function(v)
+			IRF3.db.shiftmove  = v
+		end
+	)
+	menu.shiftmove:SetPoint("TOP", menu.lock, "BOTTOM", 0, 0)
+
+
 	menu.mapButtonToggle = LBO:CreateWidget("CheckBox", parent, L["lime_basic_05"], L["lime_basic_desc_05"], nil, nil, true,
 		function() return InvenRaidFrames3DB.minimapButton.show end,
 		function(v)
@@ -61,7 +86,8 @@ function Option:CreateUseMenu(menu, parent)
 			menu.mapButtonLock:Update()
 		end
 	)
-	menu.mapButtonToggle:SetPoint("TOP", menu.tooltip, "BOTTOM", 0, 0)
+	menu.mapButtonToggle:SetPoint("TOP", menu.hideBlizzardParty, "BOTTOM", 0, 0)
+
 	menu.mapButtonLock = LBO:CreateWidget("CheckBox", parent, L["lime_basic_06"], L["lime_basic_desc_06"], nil,
 		function() return not InvenRaidFrames3DB.minimapButton.show end, nil,
 		function() return not InvenRaidFrames3DB.minimapButton.dragable end,
@@ -69,22 +95,16 @@ function Option:CreateUseMenu(menu, parent)
 			InvenRaidFrames3DB.minimapButton.dragable = not v
 		end
 	)
-	menu.mapButtonLock:SetPoint("TOP", menu.lock, "BOTTOM", 0, 0)
-	menu.hideBlizzardParty = LBO:CreateWidget("CheckBox", parent, L["lime_basic_07"], L["lime_basic_desc_07"], nil, nil, true,
-		function() return IRF3.db.hideBlizzardParty end,
-		function(v)
-			IRF3:HideBlizzardPartyFrame(v)
-		end
-	)
-	menu.hideBlizzardParty:SetPoint("TOP", menu.mapButtonToggle, "BOTTOM", 0, 0)
+	menu.mapButtonLock:SetPoint("TOP", menu.shiftmove, "BOTTOM", 0, 0)
+
 	menu.clear = LBO:CreateWidget("Button", parent, L["lime_basic_08"], L["lime_basic_desc_08"], nil, nil, true,
 		function()
 			IRF3.db.px, IRF3.db.py = nil
 --			IRF3:SetUserPlaced(nil)
 			IRF3:ClearAllPoints()
 			IRF3:SetPoint(IRF3.db.anchor, UIParent, "CENTER", 0, 0)
-			IRF3.tankheaders[0]:ClearAllPoints()
-			IRF3.tankheaders[0]:SetPoint("TOPLEFT", IRF3, "TOPLEFT", -100,-13) 
+			IRF3.tankheaders:ClearAllPoints()
+			IRF3.tankheaders:SetPoint("TOPLEFT", IRF3, "TOPLEFT", -100,-13) 
 --			IRF3:SetUserPlaced(nil)
 		end
 	)
@@ -97,7 +117,7 @@ function Option:CreateUseMenu(menu, parent)
 			LBO:Refresh()
 		end
 	)
-	menu.manager:SetPoint("TOP", menu.hideBlizzardParty, "BOTTOM", 0, -10)
+	menu.manager:SetPoint("TOP", menu.mapButtonToggle, "BOTTOM", 0, 0)
 	menu.managerPos = LBO:CreateWidget("Slider", parent, L["lime_basic_10"].."(".. L["도"] ..")" , L["lime_basic_desc_10"], nil, function() return not IRF3.db.useManager end, nil,
 		function() return IRF3.db.managerPos, 0, 360, 0.1  end,
 		function(v)
@@ -106,15 +126,19 @@ function Option:CreateUseMenu(menu, parent)
 		end
 	)
 
-	menu.managerPos:SetPoint("TOP", menu.clear, "BOTTOM", 0, -10)
+	menu.managerPos:SetPoint("TOP", menu.manager, "BOTTOM", 0, 0)
+
+
+
 	local castingSentList = { L["표시 안함"], L["항상 표시"], L["마우스를 올릴 때 표시"] }
 	menu.castingSent = LBO:CreateWidget("DropDown", parent, L["lime_basic_11"], L["lime_basic_desc_11"], nil, nil, true,
 		function() return IRF3.db.castingSent + 1, castingSentList end,
 		function(v)
 			IRF3.db.castingSent = v - 1
+			IRF3:SetupLib()
 		end
 	)
-	menu.castingSent:SetPoint("TOP", menu.manager, "BOTTOM", 0, -10)
+	menu.castingSent:SetPoint("TOP", menu.clear, "BOTTOM", 0, 0)
 	
 	-- if not IRF3.db.CPUUsage then IRF3.db.CPUUsage = false end
 	-- menu.CPUUsage = LBO:CreateWidget("CheckBox", parent, "CPU사용량 표시", "좌클릭: 라이브러리 사용/해제 , 우클릭: 감추기/열기", nil, nil, true,
@@ -210,6 +234,23 @@ function Option:CreateGroupMenu(menu, parent)
 		end
 	)
 	menu.partyTag:SetPoint("TOP", menu.column, "BOTTOM", 0, -5)
+
+
+
+	local sortplayer = { L["플레이어위치1"], L["플레이어위치2"], L["플레이어위치3"] }
+	menu.sortplayer = LBO:CreateWidget("DropDown", parent, L["플레이어위치"], L["플레이어위치_desc"], nil, nil, true,
+		function() return IRF3.db.units.sortplayer,sortplayer end,
+		function(v)
+			IRF3.db.units.sortplayer = v
+			IRF3:UpdateGroupFilter()
+
+		end
+	)
+	menu.sortplayer:SetPoint("TOP", menu.dir, "BOTTOM", 0, -5)
+
+
+
+
 	menu.sortName = LBO:CreateWidget("CheckBox", parent, L["lime_basic_17"], L["lime_basic_desc_17"], nil, nil, true,
 		function() return IRF3.db.sortName end,
 		function(v)
@@ -217,9 +258,11 @@ function Option:CreateGroupMenu(menu, parent)
 			IRF3:UpdateGroupFilter()
 		end
 	)
-	menu.sortName:SetPoint("TOP", menu.dir, "BOTTOM", 0, -5)
+	menu.sortName:SetPoint("TOPLEFT", menu.partyTag, "BOTTOMLEFT", 0, -5)
+
+
 	menu.group = LBO:CreateWidget("ShowHide", parent, function() return IRF3.db.groupby ~= "GROUP" end)
-	menu.group:SetPoint("TOPLEFT", menu.partyTag, "BOTTOMLEFT", 0, 0)
+	menu.group:SetPoint("TOPLEFT", menu.sortName, "BOTTOMLEFT", 0, 0)
 	menu.group:SetPoint("RIGHT", 0, -5)
 	menu.group:SetHeight(160)
 	menu.group:SetBackdrop({
@@ -520,7 +563,7 @@ function Option:CreatePetMenu(menu, parent)
 			IRF3:UpdateGroupFilter()
 		end
 	)
-	menu.anchor:SetPoint("TOPRIGHT", -5, -5)
+	menu.anchor:SetPoint("TOPLEFT",menu.pet,"TOPRIGHT",30,0)
 	menu.column = LBO:CreateWidget("Slider", parent, L["petDisplay8"], L["petDisplay9"], usePetGroup, nil, true,
 		function() return IRF3.db.petcolumn, 1, 25, 1, "" end,
 		function(v)
@@ -540,6 +583,42 @@ function Option:CreatePetMenu(menu, parent)
 		end
 	)
 	menu.dir:SetPoint("TOP", menu.anchor, "BOTTOM", 0, -10)
+
+
+	local function updateName(member)
+		if member:IsVisible() then
+			InvenRaidFrames3Member_UpdateName(member)
+		end
+	end
+
+	menu.petframeautopos = LBO:CreateWidget("CheckBox", parent, L["lime_layout_09_3"], L["lime_layout_desc_09_3"], usePetGroup, nil, true,
+		function()
+			return IRF3.db.units.petframeautopos
+		end,
+		function(v)
+			IRF3.db.units.petframeautopos = v
+ 
+			Option:UpdateMember(updateName)
+		end
+	)
+	menu.petframeautopos:SetPoint("TOPLEFT", menu.column, "BOTTOMLEFT", 0, -10)
+
+
+
+	menu.hidepetName = LBO:CreateWidget("CheckBox", parent, L["lime_layout_09_2"], L["lime_layout_desc_09_2"], usePetGroup, nil, true,
+		function()
+			return IRF3.db.units.hidepetName
+		end,
+		function(v)
+			IRF3.db.units.hidepetName = v
+ 
+			Option:UpdateMember(updateName)
+		end
+	)
+	menu.hidepetName:SetPoint("TOPLEFT", menu.dir, "BOTTOMLEFT", 0, -10)
+
+
+
 	menu.scale = LBO:CreateWidget("Slider", parent, L["petDisplay14"].."(%)", L["petDisplay15"], usePetGroup, nil, true,
 		function() return IRF3.db.petscale * 100, 50, 150, 1 end,
 		function(v)
@@ -550,5 +629,53 @@ function Option:CreatePetMenu(menu, parent)
 			end
 		end
 	)
-	menu.scale:SetPoint("TOP", menu.column, "BOTTOM", 0, -10)
+	menu.scale:SetPoint("TOP", menu.petframeautopos, "BOTTOM", 0, -10)
+
+	menu.width = LBO:CreateWidget("Slider", parent, L["lime_layout_03"].."(".. L["픽셀"] ..")", L["lime_layout_desc_03"], usePetGroup, nil, true,
+		function()
+			return IRF3.db.petwidth2, 32, 256, 1
+		end,
+		function(v)
+			IRF3.db.petwidth2 = v
+
+			for _, member in pairs(IRF3.petHeader.members) do
+				member:SetWidth(v)
+				member:SetupPowerBar()
+				member:SetupBarOrientation()
+			end
+			if IRF3.petHeader:IsVisible() then
+				IRF3.petHeader:Hide()
+				IRF3.petHeader:Show()
+			end
+			IRF3:LoadPosition()
+			Option:UpdatePreview()
+		end
+	)
+	menu.width:SetPoint("TOP", menu.scale, "BOTTOM", 0, -10)
+
+	menu.height = LBO:CreateWidget("Slider", parent, L["lime_layout_04"].."(".. L["픽셀"] ..")", L["lime_layout_desc_04"], usePetGroup, nil, true,
+		function()
+			return IRF3.db.petheight2, 25, 256, 1
+		end,
+		function(v)
+			IRF3.db.petheight2 = v
+			IRF3:LoadPosition()
+
+			for _, member in pairs(IRF3.petHeader.members) do
+				member:SetHeight(v)
+				member:SetupPowerBar()
+				member:SetupBarOrientation()
+			end
+			if IRF3.petHeader:IsVisible() then
+				IRF3.petHeader:Hide()
+				IRF3.petHeader:Show()
+			end
+			IRF3:LoadPosition()
+			IRF3:SetAttribute("updateposition", not IRF3:GetAttribute("updateposition"))
+			Option:UpdatePreview()
+		end
+	)
+	menu.height:SetPoint("TOPLEFT", menu.width, "TOPRIGHT", 30, 0)
+
+	
 end

@@ -11,7 +11,6 @@
 <Script file="Modules\ReadyCheck.lua"/>
 <Script file="Modules\Buff.lua"/>
 <Script file="Modules\Debuff.lua"/>
-<Script file="Modules\SurvivalSkill.lua"/>
 <Script file="Modules\SpellTimer.lua"/>
 <Script file="Modules\CastingSent.lua"/>
 <Script file="Modules\Resurrection.lua"/>

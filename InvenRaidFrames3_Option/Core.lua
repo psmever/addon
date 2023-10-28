@@ -28,13 +28,13 @@ local menuList = {
 	[L["lime_a"]] = {
 		{ name = L["사용"], desc = L["사용desc"], func = menuOnClick, create = "Use" },
 		{ name = L["정렬 및 배치"], desc = L["정렬 및 배치desc"], func = menuOnClick, create = "Group" },
-		{ name = L["소환수"], L["소환수desc"], func = menuOnClick, create = "Pet" },
 		{ name = L["클릭 캐스팅"], desc = L["클릭 캐스팅desc"], func = menuOnClick, create = "ClickCasting", disableScroll = true },
 		{ name = L["프로필 관리"], desc = L["프로필 관리desc"], func = menuOnClick, create = "Profile", disableScroll = true },
 		{ name = L["고급"], desc = L["고급desc"], func = menuOnClick, create = "Advanced", disableScroll = true },
 	},
 	[L["lime_b"]] = {
 		{ name = L["프레임"], desc = L["프레임desc"], func = menuOnClick, create = "Frame" },
+		{ name = L["소환수"], L["소환수desc"], func = menuOnClick, create = "Pet" },
 		{ name = L["체력바 및 직업 색상"], desc = L["체력바 및 직업 색상desc"], func = menuOnClick, create = "HealthBar" },
 		{ name = L["마나바"], desc = L["마나바desc"], func = menuOnClick, create = "ManaBar" },
 		{ name = L["이름"], desc = L["이름desc"], func = menuOnClick, create = "Name" },
@@ -64,6 +64,7 @@ local menuList = {
 		{ name = L["중앙 상태 아이콘"], desc = L["중앙 상태 아이콘desc"], func = menuOnClick, create = "CenterStatusIcon" },
 		{ name = L["도핑 체크"], desc = L["도핑 체크desc"], func = menuOnClick, create = "RaidCheck" },
 		{ name = L["파티장 아이콘"], desc = L["파티장 아이콘desc"], func = menuOnClick, create = "LeaderIcon" },
+		{ name = L["순차선택"], desc = L["순차선택_desc"], func = menuOnClick, create = "MemberSelect" },
 	},
 }
  
@@ -235,6 +236,7 @@ function Option:SetOption(...)
 end
 
 function Option:UpdateMember(func)
+
 	if type(func) == "function" then
 		for _, header in pairs(IRF3.headers) do
 			for _, member in pairs(header.members) do
@@ -242,12 +244,9 @@ function Option:UpdateMember(func)
 			end
 		end
 
-		for _, header in pairs(IRF3.tankheaders) do
-			for _, member in pairs(header.members) do
-				func(member)
-			end
+		for _, member in pairs(IRF3.tankheaders.members) do
+			func(member)
 		end
-
  
  
 			for _, member in pairs(IRF3.petHeader.members) do

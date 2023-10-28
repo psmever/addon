@@ -43,70 +43,43 @@ function Option:CreateFrameMenu(menu, parent)
 	)
 	menu.scale:SetPoint("TOPRIGHT", -5, -5)
 
+	local last_width_chg_time
 	menu.width = LBO:CreateWidget("Slider", parent, L["lime_layout_03"].."(".. L["픽셀"] ..")", L["lime_layout_desc_03"], nil, nil, true,
 		function()
 			return IRF3.db.width, 32, 256, 1
 		end,
 		function(v)
+
+			if last_width_chg_time and  last_width_chg_time ==GetTime() then  return end 
+			last_width_chg_time = GetTime()
+		
+			IRF3:SetAttribute("startupdate", nil) 
 			IRF3.db.width = v
 			IRF3.nameWidth = v - 2
 			IRF3:SetWidth(v)
 			IRF3:SetAttribute("width", v)
-			for _, header in pairs(IRF3.headers) do
-				header:SetWidth(v)
-				for _, member in pairs(header.members) do
-					member:SetWidth(v)
-					member:SetupPowerBar()
-					member:SetupBarOrientation()
-				end
-				if header:IsVisible() then
-					header:Hide()
-					header:Show()
-				end
-			end
-			for _, member in pairs(IRF3.petHeader.members) do
-				member:SetWidth(v)
-				member:SetupPowerBar()
-				member:SetupBarOrientation()
-			end
-			if IRF3.petHeader:IsVisible() then
-				IRF3.petHeader:Hide()
-				IRF3.petHeader:Show()
-			end
-			Option:UpdatePreview()
+			IRF3:SetAttribute("startupdate", true)
+
 		end
 	)
 	menu.width:SetPoint("TOP", menu.texture, "BOTTOM", 0, -10)
+
+	local last_height_chg_time
 	menu.height = LBO:CreateWidget("Slider", parent, L["lime_layout_04"].."(".. L["픽셀"] ..")", L["lime_layout_desc_04"], nil, nil, true,
 		function()
 			return IRF3.db.height, 25, 256, 1
 		end,
 		function(v)
+
+			if last_height_chg_time and  last_height_chg_time ==GetTime() then  return end 
+			last_height_chg_time = GetTime()
+
+
+			IRF3:SetAttribute("startupdate", nil)
 			IRF3.db.height = v
 			IRF3:SetHeight(v)
 			IRF3:SetAttribute("height", v)
-			for _, header in pairs(IRF3.headers) do
-				for _, member in pairs(header.members) do
-					member:SetHeight(v)
-					member:SetupPowerBar()
-					member:SetupBarOrientation()
-				end
-				if header:IsVisible() then
-					header:Hide()
-					header:Show()
-				end
-			end
-			for _, member in pairs(IRF3.petHeader.members) do
-				member:SetHeight(v)
-				member:SetupPowerBar()
-				member:SetupBarOrientation()
-			end
-			if IRF3.petHeader:IsVisible() then
-				IRF3.petHeader:Hide()
-				IRF3.petHeader:Show()
-			end
-			IRF3:SetAttribute("updateposition", not IRF3:GetAttribute("updateposition"))
-			Option:UpdatePreview()
+			IRF3:SetAttribute("startupdate", true)
 		end
 	)
 	menu.height:SetPoint("TOP", menu.scale, "BOTTOM", 0, -10)
@@ -183,7 +156,23 @@ function Option:CreateHealthBarMenu(menu, parent)
 			Option:UpdatePreview()
 		end
 	)
-	menu.classColor:SetPoint("TOPRIGHT", -5, -5)
+	menu.classColor:SetPoint("TOPLEFT", menu.orientation,"BOTTOMLEFT", 0, 10)
+
+	menu.PetclassColor = LBO:CreateWidget("CheckBox", parent, L["lime_layout_09_1"], L["lime_layout_desc_09_1"], nil, nil, true,
+		function()
+			return IRF3.db.units.usePetClassColors
+		end,
+		function(v)
+			IRF3.db.units.usePetClassColors = v
+			Option:UpdateMember(updateColor)
+			Option:UpdatePreview()
+		end
+	)
+	menu.PetclassColor:SetPoint("TOPLEFT", menu.classColor,"TOPRIGHT", 10, 0)
+
+
+
+
 	menu.reset = LBO:CreateWidget("Button", parent, L["lime_layout_10"], L["lime_layout_desc_10"], nil, nil, true,
 		function()
 			IRF3.db.colors.help[1], IRF3.db.colors.help[2], IRF3.db.colors.help[3] = 0, 1, 0
@@ -201,9 +190,9 @@ function Option:CreateHealthBarMenu(menu, parent)
 			LBO:Refresh(parent)
 		end
 	)
-	menu.reset:SetPoint("TOP", menu.orientation, "BOTTOM", 0, -5)
-	local colorList = { "help", "harm", "pet", "vehicle", "offline", "WARRIOR", "ROGUE", "PRIEST", "MAGE", "WARLOCK", "HUNTER", "DRUID", "SHAMAN", "PALADIN", "DEATHKNIGHT" }
-	local colorLocale = { L["우호적 대상"], L["적대적 대상"], L["소환수"], L["탈것 탑승 시"], L["오프라인일 때"], L["전사"], L["도적"], L["사제"], L["마법사"], L["흑마법사"], L["사냥꾼"], L["드루이드"], L["주술사"], L["성기사"], L["죽음의 기사"] }
+	menu.reset:SetPoint("TOP", menu.orientation, "BOTTOM", 0, -10)
+	local colorList = { "help", "harm", "pet", "vehicle", "offline", "WARRIOR", "ROGUE", "PRIEST", "MAGE", "WARLOCK", "HUNTER", "DRUID", "SHAMAN", "PALADIN", "DEATHKNIGHT" ,"specialdebuff"}
+	local colorLocale = { L["우호적 대상"], L["적대적 대상"], L["소환수"], L["탈것 탑승 시"], L["오프라인일 때"], L["전사"], L["도적"], L["사제"], L["마법사"], L["흑마법사"], L["사냥꾼"], L["드루이드"], L["주술사"], L["성기사"], L["죽음의 기사"],L["특수디버프"] }
 	local function getColor(color)
 		return IRF3.db.colors[color][1], IRF3.db.colors[color][2], IRF3.db.colors[color][3]
 	end

@@ -41,8 +41,20 @@ end
 
 
 local function editBoxSetValue(box, value)
+--s = "($1,000)"
+--res, _ = s:gsub("%D+", "")
+--print(res)
 	if box.numeric then
-		box.prevalue = value or 0
+	if   type(value)=="number" then 
+--print(value)
+box.prevalue = value or 0
+		
+		
+	else
+box.prevalue , _ = value:gsub("%D+", "")		
+	end
+
+
 		box:SetNumber(box.prevalue)
 	else
 		box.prevalue = (value or ""):trim()

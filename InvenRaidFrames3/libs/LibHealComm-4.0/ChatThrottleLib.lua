@@ -345,6 +345,7 @@ function ChatThrottleLib.OnUpdate(this,delay)
 	if self.OnUpdateDelay < 0.08 then
 		return
 	end
+
 	self.OnUpdateDelay = 0
 
 	self:UpdateAvail()

@@ -51,21 +51,27 @@ end
 
 local function createItemRow(f, specEnchant, specEnchantSource)
 
-    local isSpell = specEnchantSource.IsSpell == "True";
-    local function createItemRowInternal(f, item, specEnchant, specEnchantSource)
+    LBIS:GetSpellInfo(specEnchant.Id, function(item)
         local window = LBIS.BrowserWindow.Window;
-        local b, t, dl = nil, nil, nil;
 
-        b = CreateFrame("Button", nil, f);
+        local b = CreateFrame("Button", nil, f);
         b:SetSize(32, 32);
         local bt = b:CreateTexture();
         bt:SetAllPoints();
-        bt:SetTexture(item.Texture);
+        
+        if specEnchantSource.TextureId ~= nil and specEnchantSource.TextureId ~= "" and tonumber(specEnchantSource.TextureId) > 0 and tonumber(specEnchantSource.TextureId) < 99999 then
+            LBIS:GetItemInfo(tonumber(specEnchantSource.TextureId), function(textureItem)
+                bt:SetTexture(textureItem.Texture);
+            end);
+        else
+            bt:SetTexture(item.Texture);
+        end
+
         b:SetPoint("TOPLEFT", f, 2, -5);
 
-        LBIS:SetTooltipOnButton(b, item, isSpell);
+        LBIS:SetTooltipOnButton(b, item, true);
 
-        t = f:CreateFontString(nil, nil, "GameFontNormal");
+        local t = f:CreateFontString(nil, nil, "GameFontNormal");
         t:SetText((item.Link or item.Name):gsub("[%[%]]", ""));
         t:SetPoint("TOPLEFT", b, "TOPRIGHT", 2, -2);
 
@@ -80,7 +86,7 @@ local function createItemRow(f, specEnchant, specEnchantSource)
                     return;
                 end
 
-                b2 = CreateFrame("Button", nil, f);
+                local b2 = CreateFrame("Button", nil, f);
                 b2:SetSize(32, 32);
                 local bt2 = b2:CreateTexture();
                 bt2:SetAllPoints();
@@ -89,38 +95,28 @@ local function createItemRow(f, specEnchant, specEnchantSource)
 
                 LBIS:SetTooltipOnButton(b2, designItem);
 
-                d = f:CreateFontString(nil, nil, "GameFontNormal");
+                local d = f:CreateFontString(nil, nil, "GameFontNormal");
                 d:SetText(specEnchantSource.Source);
                 d:SetJustifyH("LEFT");
                 d:SetPoint("TOPLEFT", b2, "TOPRIGHT", 2, -2);
 
-                dl = f:CreateFontString(nil, nil, "GameFontNormalSmall");
+                local dl = f:CreateFontString(nil, nil, "GameFontNormalSmall");
                 dl:SetText(specEnchantSource.SourceLocation);
                 dl:SetPoint("TOPLEFT", d, "BOTTOMLEFT", 0, -5);
             end); 
         else
-            d = f:CreateFontString(nil, nil, "GameFontNormal");
+            local d = f:CreateFontString(nil, nil, "GameFontNormal");
             d:SetText(specEnchantSource.Source);
             d:SetJustifyH("LEFT");
             d:SetWidth(window.ScrollFrame:GetWidth() / 2);
             d:SetPoint("TOPLEFT", (window.ScrollFrame:GetWidth() / 2), -5);
 
-            dl = f:CreateFontString(nil, nil, "GameFontNormalSmall");
+            local dl = f:CreateFontString(nil, nil, "GameFontNormalSmall");
             dl:SetText(specEnchantSource.SourceLocation);
             dl:SetPoint("TOPLEFT", d, "BOTTOMLEFT", 0, -5);
         end
-    end
-
-    if isSpell then
-        LBIS:GetSpellInfo(specEnchant.Id, function(item)
-            createItemRowInternal(f, item, specEnchant, specEnchantSource);
-        end);
-    else    
-        LBIS:GetItemInfo(specEnchant.Id, function(item)
-            createItemRowInternal(f, item, specEnchant, specEnchantSource);
-        end);
-    end
-            
+    end);
+                
     -- even if we are reusing, it may not be in the same order
     local _, count = string.gsub(specEnchantSource.Source, "/", "")
     if count > 1 then

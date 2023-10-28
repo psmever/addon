@@ -43,7 +43,7 @@ function InvenRaidFrames3_ReadyCheckHide()
 if IRF3.db.enableTankFrame then
 --	for _, header in pairs(IRF3.tankheaders) do
 --		for _, member in pairs(header.members) do
-		for _, member in pairs(IRF3.tankheaders[0].members) do
+		for _, member in pairs(IRF3.tankheaders.members) do
 
 				member.readyCheckIcon:Hide()
 

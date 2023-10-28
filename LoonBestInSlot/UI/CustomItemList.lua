@@ -1,8 +1,5 @@
 LBIS.CustomItemList = {};
 
---TODO: Sort items based on order entered
---TODO: Swap wowhead items list with custom list
-
 local itemSlotOrder = {}
 itemSlotOrder[LBIS.L["Head"]] = 0;
 itemSlotOrder[LBIS.L["Shoulder"]] = 1;
@@ -169,7 +166,6 @@ end
 local function createItemRow(f, specItem, specItemSource)
     
     LBIS:GetItemInfo(specItem.Id, function(item)
-        local t, b, d, dl = nil, nil, nil, nil;
         local window = LBIS.BrowserWindow.Window;
 
         if item == nil or item.Id == nil or item.Link == nil or item.Type == nil then
@@ -178,7 +174,7 @@ local function createItemRow(f, specItem, specItemSource)
         end
         --Create Item Button and Text
 
-        b = CreateFrame("Button", nil, f);
+        local b = CreateFrame("Button", nil, f);
         b:SetSize(32, 32);
         local bt = b:CreateTexture();
         bt:SetAllPoints();
@@ -187,7 +183,7 @@ local function createItemRow(f, specItem, specItemSource)
 
         LBIS:SetTooltipOnButton(b, item);
 
-        t = f:CreateFontString(nil, nil, "GameFontNormal");
+        local t = f:CreateFontString(nil, nil, "GameFontNormal");
         t:SetText((item.Link or item.Name):gsub("[%[%]]", ""));
         t:SetPoint("TOPLEFT", b, "TOPRIGHT", 2, -2);
 
@@ -205,13 +201,13 @@ local function createItemRow(f, specItem, specItemSource)
 
         pt:SetPoint("TOPLEFT", t, "TOPRIGHT", 4, 0);
 
-		d = f:CreateFontString(nil, nil, "GameFontNormal");
+		local d = f:CreateFontString(nil, nil, "GameFontNormal");
 		d:SetText(createSourceTypeText(specItemSource));
 		d:SetJustifyH("LEFT");
 		d:SetWidth(window.ScrollFrame:GetWidth() / 2);
 		d:SetPoint("TOPLEFT", (window.ScrollFrame:GetWidth() / 2), -5);
 
-        dl = f:CreateFontString(nil, nil, "GameFontNormalSmall");
+        local dl = f:CreateFontString(nil, nil, "GameFontNormalSmall");
 
         if specItemSource.SourceType == LBIS.L["Transmute"] then
         
@@ -279,8 +275,8 @@ end
 
 local function hasAnyItems(list) 
     for _, slotList in pairs(list) do 
-        for _, itemId in pairs(slotList) do
-            if itemId > 0 then
+        for _, item in pairs(slotList) do
+            if item.ItemId > 0 then
                 return true;
             end
         end
@@ -312,17 +308,17 @@ function LBIS.CustomItemList:UpdateItems()
 
         for slot, slotList in LBIS:spairs(customList, slotSortFunction) do
             local customRank = 0;            
-            for _, itemId in pairs(slotList) do                
+            for _, item in pairs(slotList) do                
                 customRank = customRank + 1;
-                local specItem = { Id = itemId, Slot = slot, Bis = "Custom #"..customRank, Rank = customRank};
+                local specItem = { Id = item.ItemId, Slot = slot, Bis = item.TooltipText, Rank = customRank};
 
-                local specItemSource = LBIS.ItemSources[itemId];
+                local specItemSource = LBIS.ItemSources[item.ItemId];
                 if specItemSource == nil then
-                    LBIS:Error("Missing item source: ", specItem);
-                else
-                    if IsInSlot(specItem) and IsInRank(specItem) and IsInSource(specItemSource) and IsInZone(specItemSource) then
-                        point = LBIS.BrowserWindow:CreateItemRow(specItem, specItemSource, "C_"..LBISSettings.SelectedSpec.."_"..specItemSource.Name.."_"..specItem.Id, point, createItemRow);
-                    end
+                    specItemSource = { Name = "Not Available", SourceType = "Not Available", Zone = "Not Available", Source = "Not Available", SourceLocation = "Not Available", SourceNumber = "0" };
+                end
+
+                if IsInSlot(specItem) and IsInRank(specItem) and IsInSource(specItemSource) and IsInZone(specItemSource) then
+                    point = LBIS.BrowserWindow:CreateItemRow(specItem, specItemSource, "C_"..LBISSettings.SelectedSpec.."_"..specItemSource.Name.."_"..specItem.Id, point, createItemRow);
                 end
             end
         end

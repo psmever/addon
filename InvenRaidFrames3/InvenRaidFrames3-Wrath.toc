@@ -1,15 +1,18 @@
-﻿## Interface: 30400
+﻿## Interface: 30403
 ## Title: Inven Raid Frames 3
 ## Notes: 인벤 레이드 프레임 3
 ## X-Category: UnitFrame
 ## Author: 법사마리
-## Version: classic.12.4.5u11c
+## Version: classic.12.4.11d
 ## X-Website: 
 ## SavedVariables: InvenRaidFrames3DB
 ## SavedVariablesPerCharacter: InvenRaidFrames3CharDB
 ## OptionalDeps: LibSharedMedia-3.0, LibMapButton-1.1, LibDataBroker-1.1
 #@no-lib-strip@
-libs\AceLocale-3.0\AceLocale-3.0.xml 
+libs\LibStub\LibStub.lua
+libs\CallbackHandler-1.0\CallbackHandler-1.0.xml
+libs\AceLocale-3.0\AceLocale-3.0.xml
+libs\LibSharedMedia-3.0\lib.xml
 #@end-no-lib-strip@
 
 Locale\locale.xml

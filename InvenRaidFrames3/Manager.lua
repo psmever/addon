@@ -6,7 +6,7 @@ local _G = _G
 local IRF3 = _G[...]
 local texturePath = "Interface\\AddOns\\"..(...).."\\Texture\\"
 local onPetBattle = false
-
+local run_last
 if not CompactRaidFrameManager or not CompactUnitFrameProfiles then
 	local IRF3errframe = CreateFrame("Frame",nil,UIParent, BackdropTemplateMixin and "BackdropTemplate" or nil)
 	IRF3errframe:SetFrameStrata("MEDIUM")
@@ -65,6 +65,7 @@ if not CompactRaidFrameManager or not CompactUnitFrameProfiles then
 	IRF3errframe.reload:RegisterForClicks("AnyUp")
 	IRF3errframe.reload:SetScript('OnClick', function(self, button, down)
 		if button == "LeftButton" or button =="RightButton" then
+
 			EnableAddOn('Blizzard_CompactRaidFrames')
 			EnableAddOn('Blizzard_CUFProfiles')
 			C_UI.Reload()
@@ -73,27 +74,39 @@ if not CompactRaidFrameManager or not CompactUnitFrameProfiles then
 	IRF3errframe.reload:Show()
 end
 
--- 와우 기본 공격대 프레임 및 설정창 숨기기
-if CompactRaidFrameManager then
-   CompactRaidFrameManager:UnregisterAllEvents()
-   CompactRaidFrameManager:SetAlpha(0)
-   CompactRaidFrameManager:SetScale(0.00001)
-   CompactRaidFrameManagerToggleButton:EnableMouse(nil)
+-- 와우 기본 공격대 프레임 및 설정창 숨기기-->toggle manager에서 한번에 처리하도록 이동
+
+--[[
+if CompactRaidFrameManager then --이게 관리자창 및 실제 레이드프레임까지 상속하여 처리됨.
+	CompactRaidFrameManager:UnregisterAllEvents()
+	CompactRaidFrameManager:SetAlpha(0)
+	CompactRaidFrameManager:SetScale(0.00001)
+	CompactRaidFrameManagerToggleButton:EnableMouse(nil)
 end
+--]]
+
+
 PartyMemberFrame1:ClearAllPoints()
 PartyMemberFrame1:SetPoint("TOPLEFT", UIParent, "TOPLEFT", 18, -160)
+
 if CompactUnitFrameProfiles then
 --간헐적 공대원누락으로 인해 아래 이벤트는 유지해야함.(주로 한글세글자이상 , 길드없는 캐릭에서 발생)
 --	CompactUnitFrameProfiles:UnregisterAllEvents()
 
 end
+ 
 local _
+--인터페이스 옵션의 공격대창 설정 막기
+--[[
 for _, button in pairs(InterfaceOptionsFrameCategories.buttons) do
  	if CompactUnitFrameProfiles and button.element and button.element.name == CompactUnitFrameProfiles.name then
  		button:SetScale(0.00001)
  		button:SetAlpha(0)
  	end
 end
+--]]
+
+hooksecurefunc("CompactUnitFrameProfiles_ValidateProfilesLoaded", function()   end)
 
 --[[
 function IRF3_HockCRFLoad()
@@ -179,7 +192,36 @@ IRF3.manager.content.hideButton:SetScript("OnClick", function(self)
 end)
 
 function IRF3:ToggleManager()
-	if self.db.useManager then
+ if InCombatLockdown() then 	return end
+
+	if self.db.run then --IRF사용할때는 기본 프레임해제 + IRF 이벤트 재등록
+		CompactRaidFrameManager:UnregisterAllEvents()
+		CompactRaidFrameManager:SetAlpha(0)
+		CompactRaidFrameManager:SetScale(0.00001)
+		CompactRaidFrameManager:Hide()
+	--	CompactRaidFrameManagerToggleButton:EnableMouse(nil)
+	else --IRF사용안함일때는 기본프레임 보여주기 + IRF 이벤트해제
+
+		CompactRaidFrameManager:RegisterEvent("DISPLAY_SIZE_CHANGED")
+		CompactRaidFrameManager:RegisterEvent("UI_SCALE_CHANGED")
+		CompactRaidFrameManager:RegisterEvent("GROUP_ROSTER_UPDATE")
+		CompactRaidFrameManager:RegisterEvent("UNIT_FLAGS")
+		CompactRaidFrameManager:RegisterEvent("PLAYER_FLAGS_CHANGED")
+		CompactRaidFrameManager:RegisterEvent("PLAYER_ENTERING_WORLD")
+		CompactRaidFrameManager:RegisterEvent("PARTY_LEADER_CHANGED")
+		CompactRaidFrameManager:RegisterEvent("RAID_TARGET_UPDATE")
+		CompactRaidFrameManager:RegisterEvent("PLAYER_TARGET_CHANGED")
+ 
+			CompactRaidFrameManager:SetAlpha(1)
+			CompactRaidFrameManager:SetScale(1) 
+		CompactRaidFrameManager:Show()
+	--	CompactRaidFrameManagerToggleButton:EnableMouse(nil)
+
+
+	end
+ 
+--IRF 공격대관리자 이벤트
+	if self.db.run and self.db.useManager then
 		self.manager:RegisterEvent("PLAYER_ENTERING_WORLD")
 		self.manager:RegisterEvent("DISPLAY_SIZE_CHANGED")
 		self.manager:RegisterEvent("UI_SCALE_CHANGED")
@@ -199,6 +241,11 @@ function IRF3:ToggleManager()
 		self.manager:UnregisterAllEvents()
 		self.manager:Hide()
 	end
+  
+ 
+
+ 
+
 end
 
 local inCombat
@@ -349,11 +396,11 @@ local partyGroupPosTable = {
 }
 
 local function groupSetPos(self)
-	self:SetUserPlaced(nil)
+--	self:SetUserPlaced(nil)
 	self:ClearAllPoints()
-	self:SetUserPlaced(nil)
+--	self:SetUserPlaced(nil)
 	self:SetPoint(unpack(partyGroupPosTable[IRF3.db.grouporder[self:GetID()]]))
-	self:SetUserPlaced(nil)
+--	self:SetUserPlaced(nil)
 	self:SetFrameLevel(14)
 end
 
@@ -370,7 +417,7 @@ end
 local function groupOnDragStart(self)
 	IRF3.manager.group.drag = self
 	self:SetFrameLevel(15)
-	self:SetUserPlaced(nil)
+--	self:SetUserPlaced(nil)
 	self:StartMoving()
 end
 
@@ -445,18 +492,18 @@ local classGroupPosTable = {
 
 local function classSetPos(self, index)
 	index = index or lookupTable(IRF3.db.classorder, self.class)
-	self:SetUserPlaced(nil)
+--	self:SetUserPlaced(nil)
 	self:ClearAllPoints()
-	self:SetUserPlaced(nil)
+--	self:SetUserPlaced(nil)
 	self:SetPoint(unpack(classGroupPosTable[index]))
-	self:SetUserPlaced(nil)
+--	self:SetUserPlaced(nil)
 	self:SetFrameLevel(14)
 end
 
 local function classOnDragStart(self)
 	IRF3.manager.group.drag = self
 	self:SetFrameLevel(15)
-	self:SetUserPlaced(nil)
+--	self:SetUserPlaced(nil)
 	self:StartMoving()
 end
 
@@ -508,7 +555,7 @@ end
 function IRF3:UpdateManagerGroupFilter()
 	if self.manager.group.drag then
 		self.manager.group.drag:StopMovingOrSizing()
-		self.manager.group.drag:SetUserPlaced(nil)
+--		self.manager.group.drag:SetUserPlaced(nil)
 		self.manager.group.drag = nil
 	end
 	if self.manager.run and self.manager.isExpand then

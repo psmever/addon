@@ -13,6 +13,8 @@ IRF3.numMouseButtons = 15
 local startWheelButton = 31
 local clearWheelBinding = "self:ClearBindings()"
 local state = {}
+local applied_profile
+local L = LibStub("AceLocale-3.0"):GetLocale("IRF3")
 
 IRF3.overrideClickCastingSpells = {
 	ROGUE = {
@@ -174,11 +176,15 @@ end
 
 
 local function reset(member, modifilter, button, ctype)
-	member:SetAttribute(modifilter.."type"..button, ctype)
-	member:SetAttribute(modifilter.."spell"..button, nil)
-	member:SetAttribute(modifilter.."item"..button, nil)
-	member:SetAttribute(modifilter.."macro"..button, nil)
-	member:SetAttribute(modifilter.."macrotext"..button, nil)
+
+	if member:SetAttribute(modifilter.."type"..button, ctype) then
+		member:SetAttribute(modifilter.."type"..button, ctype)
+		member:SetAttribute(modifilter.."spell"..button, nil)
+		member:SetAttribute(modifilter.."item"..button, nil)
+		member:SetAttribute(modifilter.."macro"..button, nil)
+		member:SetAttribute(modifilter.."macrotext"..button, nil)
+	end
+
 end
 
 
@@ -193,30 +199,95 @@ local function setupMembers(func, ...)
 		end
 	end
 
---if IRF3.db.enableTankFrame then
---	for _, header in pairs(IRF3.tankheaders) do
---		for _, member in pairs(header.members) do
-		for _, member in pairs(IRF3.tankheaders[0].members) do
+
+
+		for _, member in pairs(IRF3.tankheaders.members) do
 
 				func(member, ...)
---				func(member.petButton, ...)
+
 
 		end
---	end
---end
 
 	for _, member in pairs(IRF3.petHeader.members) do
 
 			func(member, ...)
 
 	end
+
+ if IRF3.db and IRF3.db.enableClickCast  and IRF3.db.activateUnitFrame then --유닛프레임에도 클릭캐스트 활성화시
+	--ElvUI
+	if ElvUF_Player then
+--print("elv")
+		if ElvUF_Player then func(ElvUF_Player,...) end
+		if ElvUF_Pet then func(ElvUF_Pet,...) end
+		if ElvUF_Target then func(ElvUF_Target,...) end
+		if ElvUF_Focus then func(ElvUF_Focus,...) end
+		if ElvUF_PartyGroup1UnitButton2 then func(ElvUF_PartyGroup1UnitButton2,...) end
+		if ElvUF_PartyGroup1UnitButton3 then func(ElvUF_PartyGroup1UnitButton3,...) end
+		if ElvUF_PartyGroup1UnitButton4 then func(ElvUF_PartyGroup1UnitButton4,...) end
+		if ElvUF_PartyGroup1UnitButton5 then func(ElvUF_PartyGroup1UnitButton5,...) end
+	end
+
+
+	--Shadowed Unit Frames
+	if SUFUnitplayer then
+--print("suf")
+		if SUFUnitplayer then func(SUFUnitplayer,...) end
+		if SUFUnitpet then func(SUFUnitpet,...) end
+		if SUFUnittarget then func(SUFUnittarget,...) end
+		if SUFUnitfocus then func(SUFUnitfocus,...) end
+		if SUFHeaderpartyUnitButton1 then func(SUFHeaderpartyUnitButton1,...) end
+		if SUFHeaderpartyUnitButton2 then func(SUFHeaderpartyUnitButton2,...) end
+		if SUFHeaderpartyUnitButton3 then func(SUFHeaderpartyUnitButton3,...) end
+		if SUFHeaderpartyUnitButton4 then func(SUFHeaderpartyUnitButton4,...) end
+
+
+	end
+ 
+
+
+
+	--Inven unit Frame
+	if InvenUnitFrames_Player then
+--print("iuf")
+		if InvenUnitFrames_Player then  func(InvenUnitFrames_Player,...) end
+		if InvenUnitFrames_Pet then func(InvenUnitFrames_Pet,...) end
+		if InvenUnitFrames_Target then func(InvenUnitFrames_Target,...) end
+		if InvenUnitFrames_Focus then func(InvenUnitFrames_Focus,...) end
+		if InvenUnitFrames_Party1 then func(InvenUnitFrames_Party1,...) end
+		if InvenUnitFrames_Party2 then func(InvenUnitFrames_Party2,...) end
+		if InvenUnitFrames_Party3 then func(InvenUnitFrames_Party3,...) end
+		if InvenUnitFrames_Party4 then func(InvenUnitFrames_Party4,...) end
+ 
+
+	end
+
+
+	--Blizzard
+	if PlayerFrame then
+--print("blizzard")
+		func(PlayerFrame,...)
+		func(PetFrame,...)
+		func(TargetFrame,...)
+		func(FocusFrame,...)
+		func(PartyMemberFrame1,...)
+		func(PartyMemberFrame2,...)
+		func(PartyMemberFrame3,...)
+		func(PartyMemberFrame4,...)
+
+	end
+
+	end--유닛프레임에도 클릭캐스트 활성화시
+
 end
 
 local function setClickCasting(member, modifilter, button, ctype, ckey1, ckey2)
+if member then
 	reset(member, modifilter, button, ctype)
 	if ckey1 then
 		member:SetAttribute(modifilter..ckey1..button, ckey2)
 	end
+end
 end
 
 function IRF3:SetClickCasting(modifilter, button)
@@ -229,6 +300,7 @@ local function setClickCastingWheel(modifilter, wheel, button)
  
 	if ckey1 == "macro" then
 		wheelScript = wheelScript.." self:SetBindingMacro(1, '"..modifilter.."MOUSE"..wheel.."', '"..ckey2.."')"
+
 	elseif ctype and ckey1 then
 		for i = startWheelButton, button + 1, -1 do
 			if IRF3.headers[1].members[1]:GetAttribute("type"..i) == ctype and IRF3.headers[1].members[1]:GetAttribute(ckey1..i) == ckey2 then
@@ -266,10 +338,14 @@ function IRF3:SetClickCastingMouseWheel()
 			setupMembers(setClickCasting, "", i)
 		end
 	end
+
 	prev_wheelCount, wheelScript, wheelCount = wheelCount + 1
 end
 
+
 function IRF3:SelectClickCastingDB()
+ 
+ 
 
 if InCombatLockdown() or not InvenRaidFrames3CharDB then return end
 	InvenRaidFrames3CharDB.clickCasting = InvenRaidFrames3CharDB.clickCasting or { {}, {}, {}, {} }
@@ -286,15 +362,21 @@ if InCombatLockdown() or not InvenRaidFrames3CharDB then return end
 --	if IRF3.specId ~= specId or IRF3.talent ~= talent then
 
 
-		IRF3.ccdb = InvenRaidFrames3CharDB.clickCasting[IRF3.talent]
+			IRF3.ccdb = InvenRaidFrames3CharDB.clickCasting[IRF3.talent]
+
+		if IRF3.db and IRF3.db.enableClickCast then
 		for modifilter in pairs(modifilters) do
 			for button = 1, IRF3.numMouseButtons do
 				IRF3:SetClickCasting(modifilter, button)
 			end
 		end
+	
 		IRF3:SetClickCastingMouseWheel()
+		end
+ 
 		if IRF3.optionFrame.UpdateClickCasting then
 			IRF3.optionFrame:UpdateClickCasting()
+
 		end
 --	end
 end
